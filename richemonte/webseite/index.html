@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<title>Richemont Monaco</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Great+Vibes&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background: #000;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+}
+
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2000;
+    padding: 30px 40px;
+    background: transparent;
+    pointer-events: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.menu-toggle {
+    font-family: 'Great Vibes', cursive;
+    font-size: 32px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    color: #fff;
+    pointer-events: auto;
+    display: inline-block;
+    mix-blend-mode: difference;
+    text-decoration: none;
+    line-height: 1;
+}
+
+.cart-icon {
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    text-decoration: none;
+    color: #fff;
+}
+
+.cart-icon::before {
+    content: "🛒";
+    font-size: 20px;
+    font-weight: 300;
+    opacity: 0.9;
+}
+
+.cart-count {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #fff;
+    color: #000;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.hero img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+}
+
+.logo-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    width: min(100%, 900px);
+    padding: 0 24px;
+    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.logo {
+    font-family: 'Great Vibes', cursive;
+    font-size: clamp(3.5rem, 7vw, 6.5rem);
+    color: #fff;
+    text-decoration: none;
+    transition: font-size 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    display: inline-block;
+    line-height: 1;
+}
+
+.logo:hover { opacity: 0.7; }
+
+.hero-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 28px;
+    min-width: 220px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.95);
+    border-radius: 4px;
+    background: transparent;
+    transition: transform 0.25s ease, background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+.hero-cta:hover,
+.hero-cta:focus-visible {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    border-color: #fff;
+    transform: translateY(-1px);
+}
+
+.logo-container.is-sticky {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(100%, 920px);
+    padding: 14px 20px;
+    background: transparent;
+    box-shadow: none;
+    border-bottom: none;
+    z-index: 2100;
+    gap: 0;
+}
+
+.logo-container.is-sticky .logo {
+    font-size: 28px;
+}
+
+.logo-container.is-sticky .hero-cta {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-10px);
+}
+
+.side-menu {
+    position: fixed;
+    top: 0;
+    left: -320px;
+    width: 300px;
+    height: 100vh;
+    padding-top: 120px;
+    background: #080808;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+}
+
+.side-menu.active { left: 0; }
+
+.side-menu a {color: #888; text-decoration: none; padding: 20px 40px; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; transition: color 0.3s;}
+
+.side-menu a:hover { color: #fff; }
+
+.menu-cart-icon {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 20px 40px;
+    color: #888;
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.3s;
+    text-decoration: none;
+}
+
+.menu-cart-icon:hover { color: #fff; }
+
+.menu-cart-icon::before {
+    display: none;
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s;
+    z-index: 2500;
+}
+
+.overlay.active { opacity: 1; pointer-events: auto; }
+
+.site-announcement {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 8px 40px;
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    font-size: 12px;
+    text-align: center;
+    z-index: 2100;
+    display: none;
+}
+
+.hero-copy {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(100%, 900px);
+    text-align: center;
+    z-index: 50;
+    padding: 0 20px;
+}
+
+.hero-copy h1 {
+    font-size: clamp(2rem, 4vw, 4rem);
+    margin-bottom: 16px;
+    letter-spacing: 0.1em;
+}
+
+.hero-copy p {
+    font-size: 1rem;
+    color: #ddd;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.8;
+}
+
+.editorial { background: #000; position: relative; z-index: 10; }
+.section { width: 100%; margin-bottom: 10px; overflow: hidden; }
+.full-bleed { height: 90vh; }
+.split { display: flex; height: 80vh; gap: 10px; padding: 0 10px; }
+.split div { flex: 1; }
+img { width: 100%; height: 100%; object-fit: cover; }
+
+.newsletter-section {
+    background: #000;
+    padding: 80px 20px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    text-align: center;
+}
+
+.newsletter-container h3 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    font-size: 12px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 25px;
+}
+
+.newsletter-form {
+    display: flex;
+    justify-content: center;
+    max-width: 400px;
+    margin: 0 auto;
+    border-bottom: 1px solid #222;
+    padding-bottom: 8px;
+}
+
+.newsletter-form input {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    letter-spacing: 1px;
+    width: 100%;
+    outline: none;
+}
+
+.newsletter-form button {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding-left: 15px;
+}
+
+footer {
+    background: #000;
+    padding: 80px 40px 40px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    text-align: center;
+}
+
+.footer-logo {
+    font-family: 'Great Vibes', cursive;
+    color: #fff;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 40px;
+}
+
+.footer-links {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    margin-bottom: 60px;
+}
+
+.footer-links a {
+    color: #666;
+    text-decoration: none;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+.footer-bottom {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: #333;
+    text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+
+<nav>
+    <a href="#" onclick="toggleMenu(); return false;" class="menu-toggle">RM</a>
+    <a href="cart.html" class="cart-icon">
+        <span id="cartCount" class="cart-count" style="display: none;">0</span>
+    </a>
+</nav>
+
+<div class="side-menu" id="sideMenu">
+    <a href="index.html">Home</a>
+    <a href="collections.html">Collections</a>
+    <a href="showroom.html">Showroom</a>
+    <a href="contact.html">Contact</a>
+    <a href="cart.html" class="menu-cart-icon">Warenkorb</a>
+</div>
+<div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+<main>
+    <section class="hero" id="hero">
+        <img id="heroBackground" decoding="async" src="Bildschirmfoto 2026-05-04 um 14.08.18.png" alt="Hero Background">
+        <div class="logo-container" id="mainLogo">
+            <a href="index.html" class="logo" id="siteTitleText">Richemont Monaco</a>
+            <a href="collections.html" class="hero-cta">Zum Showroom</a>
+        </div>
+    </section>
+
+    <div class="editorial">
+        <div class="section full-bleed"><img loading="lazy" decoding="async" src="Hemd-1.jpg" alt="E1"></div>
+        <div class="section split">
+            <div style="flex: 7;"><img loading="lazy" decoding="async" src="Hemd-9.jpg" alt="E2"></div>
+            <div style="flex: 3;"><img loading="lazy" decoding="async" src="Hemd-13.jpg" alt="E3"></div>
+        </div>
+    </div>
+</main>
+
+<section class="newsletter-section">
+    <div class="newsletter-container">
+        <h3>Newsletter</h3>
+        
+        <form class="newsletter-form" method="POST" action="https://c588d2f4.sibforms.com/serve/MUIFAFyZ-urNNjIBJvHK-P-NPg7hE_gUQ3_HwLKizFEUlB-qmAgyG6szwZZSSYupTtEcCWu7Ixw0oJkW-Z3ujD08gEU7P05I9-GkjCD5qK8jDjz9q_diWr4EIH3eq8jlWAvcBXsP-ueXu3RLQm0BmYJmP-lRNDRCY0Eb9AxWZSRkE5eLAy7OsVa1-3ouwRihp6xsk0mGehWMvp_yrw==">
+            <input type="email" name="EMAIL" placeholder="Ihre E-Mail-Adresse" required>
+            <button type="submit">Senden</button>
+
+            <input type="hidden" name="locale" value="de">
+            <input type="hidden" name="html_type" value="simple">
+        </form>
+    </div>
+</section>
+
+<footer>
+    <div class="footer-content">
+        <div class="footer-links">
+            <a href="index.html">Home</a>
+            <a href="collections.html">Collections</a>
+            <a href="showroom.html">Showroom</a>
+            <a href="contact.html">Contact</a>
+            <a href="#">Instagram</a>
+            <a href="impressum.html">Impressum</a>
+        </div>
+        <div class="footer-bottom">&copy; 2026 Richemont Monaco</div>
+    </div>
+</footer>
+
+<script>
+function toggleMenu() {
+    document.getElementById('sideMenu').classList.toggle('active');
+    document.getElementById('overlay').classList.toggle('active');
+}
+
+function updateCartCount() {
+    const cart = JSON.parse(localStorage.getItem('richemont_cart')) || [];
+    const countEl = document.getElementById('cartCount');
+    if (countEl) {
+        if (cart.length > 0) {
+            countEl.textContent = cart.length;
+            countEl.style.display = 'flex';
+        } else {
+            countEl.style.display = 'none';
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    updateCartCount();
+});
+
+// Update cart count when storage changes
+window.addEventListener('storage', updateCartCount);
+window.addEventListener('focus', updateCartCount);
+
+async function loadSiteSettings() {
+    try {
+        const response = await fetch('/api/settings');
+        const settings = await response.json();
+        if (settings.siteTitle) {
+            document.getElementById('siteTitleText').textContent = settings.siteTitle;
+            document.title = settings.siteTitle;
+        }
+        // Subtitle removed intentionally to keep the header clean.
+        if (settings.siteContent?.heroImage) {
+            document.getElementById('heroBackground').src = settings.siteContent.heroImage;
+        }
+    } catch (error) {
+        console.warn('Settings load failed', error);
+    }
+}
+
+loadSiteSettings();
+
+const logo = document.getElementById('mainLogo');
+const hero = document.getElementById('hero');
+
+window.addEventListener('scroll', () => {
+    if (window.scrollY > 0) {
+        logo.classList.add('is-sticky');
+    } else {
+        logo.classList.remove('is-sticky');
+    }
+});
+</script>
+
+</body>
+</html>

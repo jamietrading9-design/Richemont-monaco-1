@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<title>Impressum – Richemont Monaco</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400&family=Great+Vibes&display=swap" rel="stylesheet">
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        background: #000;
+        color: #fff;
+        font-family: 'Inter', sans-serif;
+        overflow-x: hidden;
+        text-align: left;
+    }
+    .impressum-wrapper {
+        margin: 180px auto 100px;
+        padding: 0 20px;
+        max-width: 900px;
+        text-align: left;
+    }
+    .legal-section p {
+        color: #ccc;
+        text-align: left;
+        line-height: 1.8;
+    }
+
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 2000; padding: 30px 40px; text-align: left; }
+    .menu-toggle { font-size: 14px; letter-spacing: 4px; cursor: pointer; color: #fff; }
+    
+    .logo-container { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 2100; }
+    .logo { font-family: 'Great Vibes', cursive; font-size: 28px; color: #fff; text-decoration: none; }
+    
+
+    .side-menu {
+        position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; padding-top: 120px;
+        background: #080808; border-right: 1px solid rgba(255,255,255,0.05);
+        transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 3000; display: flex; flex-direction: column; text-align: left;
+    }
+    .side-menu.active { left: 0; }
+    .side-menu a { color: #888; text-decoration: none; padding: 20px 40px; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; }
+    .side-menu a:hover { color: #fff; }
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); opacity: 0; pointer-events: none; transition: opacity 0.4s; z-index: 2500; }
+    .overlay.active { opacity: 1; pointer-events: auto; }
+
+    h1 {
+        font-size: 10px;
+        letter-spacing: 10px;
+        text-transform: uppercase;
+        color: #fff; 
+        margin-bottom: 80px;
+        font-weight: 300;
+    }
+
+    .legal-section {
+        margin-bottom: 60px;
+    }
+
+    .legal-section h2 {
+        font-size: 11px;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        color: #fff; 
+        margin-bottom: 20px;
+        font-weight: 400;
+    }
+
+    .legal-section p {
+        font-size: 15px;
+        line-height: 1.8;
+        color: #ccc;
+        font-weight: 300;
+    }
+
+    .disclaimer {
+        margin-top: 100px;
+        padding-top: 60px;
+        border-top: 1px solid #222;
+    }
+
+    .disclaimer h2 {
+        font-size: 11px;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        color: #fff;
+        margin-bottom: 40px;
+    }
+
+    .disclaimer h3 {
+        font-size: 10px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: #aaa;
+        margin: 30px 0 10px;
+    }
+
+    .disclaimer p {
+        font-size: 13px;
+        color: #888;
+        max-width: 600px;
+        margin: 0 auto 20px;
+    }
+
+    footer {
+        padding: 100px 40px 40px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .footer-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 40px;
+    }
+    .footer-logo { font-family: 'Great Vibes', cursive; font-size: 40px; color: #fff; text-decoration: none; }
+    .footer-links { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #888; text-decoration: none; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; transition: color 0.3s; }
+    .footer-links a:hover { color: #fff; }
+    .footer-bottom { margin-top: 60px; font-size: 9px; letter-spacing: 2px; color: #444; text-transform: uppercase; }
+
+    @media (max-width: 768px) {
+        .impressum-wrapper { margin-top: 140px; }
+        
+        nav {
+            padding: 20px 20px;
+        }
+        
+        .menu-toggle {
+            font-size: 24px;
+            letter-spacing: 1px;
+        }
+        
+        .impressum-wrapper h1 {
+            font-size: 28px;
+            margin-bottom: 30px;
+        }
+        
+        .impressum-content {
+            padding: 0 20px;
+        }
+        
+        .impressum-content h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        
+        .impressum-content p {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        footer {
+            padding: 60px 20px 30px;
+        }
+        
+        .footer-logo {
+            font-size: 32px;
+            margin-bottom: 30px;
+        }
+        
+        .footer-links {
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+        
+        .footer-links a {
+            font-size: 9px;
+        }
+        
+        .footer-bottom {
+            font-size: 8px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .impressum-wrapper h1 {
+            font-size: 24px;
+            
+        }
+        
+        .impressum-content {
+            padding: 0 15px;
+        }
+        
+        .impressum-content h2 {
+            font-size: 16px;
+        }
+        
+        .impressum-content p {
+            font-size: 13px;
+        }
+    }
+    .menu-toggle {
+    font-family: 'Great Vibes', cursive; 
+    font-size: 32px;                   
+    letter-spacing: 2px;              
+    cursor: pointer;
+    color: #fff;
+    pointer-events: auto;
+    display: inline-block;
+    mix-blend-mode: difference;
+    text-decoration: none;
+    line-height: 1;                    
+}
+.impresueber{
+padding: 0% 344px;
+font-size: 16px;
+    
+}
+.programmierer{
+background-color: aqua;
+}
+.email{
+    font-family: 'Great Vibes', cursive;
+    font-size: 32px;
+    letter-spacing: 2px;
+cursor: pointer;
+color: aliceblue;
+pointer-events: auto;
+display: inline-block;
+mix-blend-mode: difference;
+text-decoration: none;
+line-height: 1;
+
+
+    
+}
+
+</style>
+</head>
+<body>
+
+    <nav><div class="menu-toggle" onclick="toggleMenu()">RD</div></nav>
+
+    <div class="logo-container">
+        <a href="index.html" class="logo">Richemont Momnaco
+        
+        </a>
+    </div>
+
+    <div class="side-menu" id="sideMenu">
+        <a href="index.html">Home</a>
+        <a href="collections.html">Collections</a>
+        <a href="showroom.html">Showroom</a>
+        <a href="contact.html">Contact</a>
+    </div>
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+    <main class="impressum-wrapper">
+        <h1 class="impresueber">Impressum</h1>
+
+        <div class="legal-section">
+            <h2>Herausgeber</h2>
+            <p>Richemont Monaco Studio<br>
+           Alfred Reichberg<br>
+          Bojum 1<br>
+            24402 Esgrus</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>Kontakt</h2>
+            <p>Mobil:-<br>
+            E-Mail:freddy@richemont.de<br>
+        </p>
+        </div>
+
+        <div class="legal-section">
+            <h2>Verantwortlich</h2>
+            <p>Inhaltlich verantwortlich nach § 55 Abs. 2 RStV:<br>
+            Alfred Reichberg<br><br>
+           <br>
+            </p>
+        </div>
+        <div class="legal-section">
+            <h2>Ersteller
+            </h2>
+            <p> Name : Jamie Lübcke </p> <br>
+            <p class="emaill">Email: <a href="mailto:jamie.trading.9@gmail.com">Jamie@gmail.com</a></p>
+            <p>
+                - Programmierung <br>
+                - Wartung
+            </p>
+
+
+
+        </div>
+
+        <section class="disclaimer">
+            <h2>Haftungsausschluss</h2>
+            
+            <h3>Inhalte</h3>
+            <p>Die Inhalte unserer Seiten wurden mit größter Sorgfalt erstellt. Für die Richtigkeit und Aktualität können wir jedoch keine Gewähr übernehmen.</p>
+
+            <h3>Links</h3>
+            <p>Wir übernehmen keine Haftung für externe Links zu Webseiten Dritter, auf deren Inhalt wir keinen Einfluss haben.</p>
+
+            <h3>Urheberrecht</h3>
+            <p>Alle Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Eine Verwertung außerhalb der Grenzen des Urheberrechtes bedarf der schriftlichen Zustimmung.</p>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <a href="index.html" class="footer-logo">Richemont Monaco</a>
+          <div class="footer-links">
+            <a href="index.html">Home</a>
+            <a href="collections.html">Collections</a>
+            <a href="showroom.html">Showroom</a>
+            <a href="contact.html">Contact</a>
+            <a href="#">Instagram</a>
+            <a href="impressum.html">Impressum</a>
+        </div>
+
+            <div class="footer-bottom">
+                &copy; 2026 Richemont Monaco 
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    function toggleMenu() {
+        document.getElementById('sideMenu').classList.toggle('active');
+        document.getElementById('overlay').classList.toggle('active');
+    }
+    </script>
+
+</body>
+</html>

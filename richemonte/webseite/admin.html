@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Great+Vibes&display=swap" rel="stylesheet">
+  <title>Admin Login - Richemont Monaco</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 400px;
+      padding: 40px;
+      background: #000;
+    }
+
+    .login-brand {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+
+    .login-brand .brand-name {
+      font-family: 'Great Vibes', cursive;
+      font-size: 36px;
+      letter-spacing: 1px;
+      text-transform: none;
+      font-weight: 400;
+      color: #fff;
+    }
+
+    .login-brand .brand-line {
+      font-family: 'Inter', sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.6em;
+      text-transform: uppercase;
+      color: #888;
+      font-weight: 400;
+    }
+
+    .login-title {
+      font-size: 14px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .label {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    .field {
+      width: 100%;
+      padding: 12px 14px;
+      background: #0a0a0a;
+      border: 1px solid #222;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .field:focus {
+      outline: none;
+      border-color: #444;
+      background: #111;
+    }
+
+    .field::placeholder {
+      color: #555;
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      border: 1px solid #333;
+      background: transparent;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      margin-top: 12px;
+    }
+
+    .btn-login:hover {
+      background: #fff;
+      color: #000;
+      border-color: #fff;
+    }
+
+    .btn-login:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .alert {
+      padding: 12px;
+      margin-bottom: 20px;
+      border-left: 2px solid #444;
+      background: #0a0a0a;
+      display: none;
+      font-size: 12px;
+    }
+
+    .alert.show {
+      display: block;
+    }
+
+    .alert.error {
+      border-left-color: #ff6b6b;
+      color: #ff9999;
+    }
+
+    .loading-spinner {
+      display: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #333;
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    .loading-spinner.show {
+      display: block;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .login-footer {
+      font-size: 10px;
+      color: #555;
+      text-align: center;
+      margin-top: 40px;
+      letter-spacing: 1px;
+    }
+
+    @media (max-width: 600px) {
+      .login-container {
+        padding: 30px 20px;
+      }
+
+      .login-brand {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-brand">
+      <span class="brand-name">Richemont-Monaco</span>
+      <span class="brand-line">═════════════════</span>
+    </div>
+    <div class="login-title">Admin Console</div>
+    
+    <div id="alert" class="alert"></div>
+    <div id="spinner" class="loading-spinner"></div>
+
+    <form id="loginForm" autocomplete="off">
+      <input type="text" style="display:none" aria-hidden="true">
+      <input type="password" style="display:none" aria-hidden="true">
+
+      <div class="form-group">
+        <label class="label">Benutzername</label>
+        <input type="text" id="username" class="field" placeholder="Benutzername" required autocomplete="off">
+      </div>
+
+      <div class="form-group">
+        <label class="label">Passwort</label>
+        <input type="password" id="password" class="field" placeholder="Passwort" required autocomplete="current-password">
+      </div>
+
+      <button type="submit" class="btn-login" id="loginBtn">Anmelden</button>
+    </form>
+
+    <div class="login-footer">
+      © 2026 RICHEMONT MONACO
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const alert = document.getElementById('alert');
+      const spinner = document.getElementById('spinner');
+      const btn = document.getElementById('loginBtn');
+
+      if (!username || !password) {
+        alert.textContent = 'Benutzername und Passwort erforderlich';
+        alert.className = 'alert error show';
+        return;
+      }
+
+      btn.disabled = true;
+      spinner.classList.add('show');
+      alert.classList.remove('show');
+
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          localStorage.setItem('adminToken', data.token);
+          localStorage.setItem('adminUser', JSON.stringify({ username }));
+          setTimeout(() => {
+            window.location.href = '/dashboard.html';
+          }, 300);
+        } else {
+          alert.textContent = data.error || 'Anmeldung fehlgeschlagen';
+          alert.className = 'alert error show';
+          btn.disabled = false;
+          spinner.classList.remove('show');
+        }
+      } catch (error) {
+        alert.textContent = 'Ein Fehler ist aufgetreten';
+        alert.className = 'alert error show';
+        btn.disabled = false;
+        spinner.classList.remove('show');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<title>Produkt – Richemont Monaco</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Great+Vibes&display=swap" rel="stylesheet">
+<script src="products-data.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    background: #000;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+}
+
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2000;
+    padding: 30px 40px;
+    background: transparent;
+    pointer-events: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.menu-toggle {
+    font-family: 'Great Vibes', cursive;
+    font-size: 32px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    color: #fff;
+    pointer-events: auto;
+    display: inline-block;
+    mix-blend-mode: difference;
+    text-decoration: none;
+    line-height: 1;
+}
+
+.logo-container {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2100;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.logo {
+    font-family: 'Great Vibes', cursive;
+    font-size: 28px;
+    color: #fff;
+    text-decoration: none;
+    transition: opacity 0.3s;
+    display: inline-block;
+}
+
+.logo:hover {
+    opacity: 0.7;
+}
+
+.back-link {
+    position: fixed;
+    top: 30px;
+    left: 40px;
+    z-index: 2100;
+    color: #999;
+    text-decoration: none;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: color 0.3s;
+    pointer-events: auto;
+}
+
+.back-link:hover {
+    color: #fff;
+}
+
+.cart-icon {
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    text-decoration: none;
+    color: #fff;
+}
+
+.cart-icon::before {
+    content: "🛒";
+    font-size: 20px;
+    font-weight: 300;
+    opacity: 0.9;
+}
+
+.cart-count {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #d7b98a;
+    color: #000;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.side-menu {
+    position: fixed;
+    top: 0;
+    left: -320px;
+    width: 300px;
+    height: 100vh;
+    padding-top: 120px;
+    background: #080808;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+}
+
+.side-menu.active { left: 0; }
+
+.side-menu a {
+    color: #888;
+    text-decoration: none;
+    padding: 20px 40px;
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transition: color 0.3s;
+}
+
+.side-menu a:hover { color: #fff; }
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s;
+    z-index: 2500;
+}
+
+.overlay.active { opacity: 1; pointer-events: auto; }
+
+main {
+    margin-top: 100px;
+    padding: 40px 20px;
+}
+
+.product-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    margin-bottom: 100px;
+}
+
+.product-image {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: #050505;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.product-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 30px;
+}
+
+.product-header h1 {
+    font-size: 32px;
+    font-weight: 300;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.product-number {
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.product-price {
+    font-size: 24px;
+    font-weight: 400;
+    letter-spacing: 1px;
+}
+
+.product-price.discounted {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.product-price.discounted .original {
+    text-decoration: line-through;
+    opacity: 0.5;
+    font-size: 18px;
+}
+
+.product-price.discounted .sale-price {
+    color: #d7b98a;
+    font-weight: 600;
+}
+
+.product-description {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #ddd;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 30px 0;
+}
+
+.product-specs {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.spec-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 20px;
+}
+
+.spec-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #666;
+    font-weight: 600;
+}
+
+.spec-value {
+    font-size: 14px;
+    color: #ddd;
+}
+
+.size-selector {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.size-btn {
+    min-width: 50px;
+    padding: 10px 15px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+}
+
+.size-btn:hover {
+    border-color: #fff;
+    background: rgba(255,255,255,0.05);
+}
+
+.size-btn.selected {
+    border-color: #fff;
+    background: rgba(255,255,255,0.1);
+}
+
+.add-to-cart {
+    padding: 16px 40px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.95);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+
+.add-to-cart:hover {
+    background: rgba(255,255,255,0.08);
+    transform: translateY(-1px);
+}
+
+.related-products {
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 80px;
+    margin-bottom: 80px;
+}
+
+.related-title {
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.related-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.related-item {
+    cursor: pointer;
+    text-decoration: none;
+    color: #fff;
+    transition: opacity 0.3s;
+}
+
+.related-item:hover {
+    opacity: 0.8;
+}
+
+.related-image {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: #050505;
+    margin-bottom: 15px;
+}
+
+.related-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.related-info h3 {
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+}
+
+.related-price {
+    font-size: 12px;
+    color: #999;
+}
+
+footer {
+    background: #000;
+    padding: 80px 40px 40px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    text-align: center;
+}
+
+.footer-logo {
+    font-family: 'Great Vibes', cursive;
+    color: #fff;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 40px;
+}
+
+.footer-links {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    margin-bottom: 60px;
+    flex-wrap: wrap;
+}
+
+.footer-links a {
+    color: #666;
+    text-decoration: none;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transition: color 0.3s;
+}
+
+.footer-links a:hover {
+    color: #fff;
+}
+
+.footer-bottom {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: #333;
+    text-transform: uppercase;
+}
+
+.error-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 100px 20px;
+    color: #666;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    nav {
+        padding: 20px 20px;
+    }
+
+    .menu-toggle {
+        font-size: 24px;
+    }
+
+    .logo {
+        font-size: 20px;
+    }
+
+    .back-link {
+        left: 20px;
+        font-size: 10px;
+    }
+
+    .product-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .product-header h1 {
+        font-size: 24px;
+    }
+
+    .product-price {
+        font-size: 18px;
+    }
+
+    .spec-row {
+        grid-template-columns: 100px 1fr;
+    }
+
+    .related-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    main {
+        padding: 20px 15px;
+        margin-top: 80px;
+    }
+
+    .product-description {
+        font-size: 13px;
+    }
+
+    footer {
+        padding: 60px 20px 30px;
+    }
+}
+
+@media (max-width: 480px) {
+    main {
+        padding: 15px 10px;
+        margin-top: 70px;
+    }
+
+    .product-header h1 {
+        font-size: 20px;
+    }
+
+    .product-price {
+        font-size: 16px;
+    }
+
+    .product-description {
+        font-size: 12px;
+        padding: 20px 0;
+    }
+
+    .spec-row {
+        grid-template-columns: 80px 1fr;
+        gap: 10px;
+    }
+
+    .spec-label {
+        font-size: 10px;
+    }
+    <a href="cart.html" class="cart-icon">
+        <span id="cartCount" class="cart-count" style="display: none;">0</span>
+    </a>
+</nav>
+
+<a href="showroom2px;
+    }
+
+    .related-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .add-to-cart {
+        padding: 12px 30px;
+        font-size: 11px;
+    }
+
+    .size-btn {
+        min-width: 45px;
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+
+    footer {
+        padding: 50px 20px 25px;
+    }
+
+    .footer-links {
+        gap: 15px;
+        font-size: 9px;
+    }
+}
+</style>
+</head>
+<body>
+
+<nav>
+    <a href="#" onclick="toggleMenu(); return false;" class="menu-toggle">RM</a>
+    <a href="cart.html" class="cart-icon">
+        <span id="cartCount" class="cart-count" style="display: none;">0</span>
+    </a>
+</nav>
+
+<a href="collections.html" class="back-link">← Zurück</a>
+
+<div class="logo-container">
+    <a href="index.html" class="logo">Richemont Monaco</a>
+</div>
+
+<div class="side-menu" id="sideMenu">
+    <a href="index.html">Home</a>
+    <a href="collections.html">Collections</a>
+    <a href="showroom.html">Showroom</a>
+    <a href="contact.html">Contact</a>
+</div>
+<div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+<main>
+    <div class="product-container" id="productContainer">
+        <div style="text-align: center; padding: 100px 20px; color: #666; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">
+            Produkt wird geladen...
+        </div>
+    </div>
+
+    <div class="related-products" id="relatedSection" style="display: none;">
+        <h2 class="related-title">Andere Produkte</h2>
+        <div class="related-grid" id="relatedGrid"></div>
+    </div>
+</main>
+
+<footer>
+    <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="collections.html">Collections</a>
+        <a href="showroom.html">Showroom</a>
+        <a href="contact.html">Contact</a>
+        <a href="impressum.html">Impressum</a>
+    </div>
+    <div class="footer-bottom">&copy; 2026 Richemont Monaco</div>
+</footer>
+
+<script>
+function toggleMenu() {
+    document.getElementById('sideMenu').classList.toggle('active');
+    documupdateCartCount() {
+    const cart = JSON.parse(localStorage.getItem('richemont_cart')) || [];
+    const countEl = document.getElementById('cartCount');
+    if (countEl) {
+        if (cart.length > 0) {
+            countEl.textContent = cart.length;
+            countEl.style.display = 'flex';
+        } else {
+            countEl.style.display = 'none';
+        }
+    }
+}
+
+function getUrlParameter(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+}
+
+let allProducts = typeof RICHEMONTE_PRODUCTS !== 'undefined' ? RICHEMONTE_PRODUCTS : [];
+let currentProduct = null;
+let selectedSize = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadProduct();
+    updateCartCount();
+});
+
+async function loadProduct() {
+    const slug = getUrlParameter('slug');
+    
+    if (!slug) {
+        showError('Produkt nicht gefunden');
+        return;
+    }
+
+    // Load from local storage cache first
+    const local = localStorage.getItem('richemont_products.json');
+    if (local) {
+        try {
+            const data = JSON.parse(local);
+            allProducts = data.products || RICHEMONTE_PRODUCTS;
+        } catch(e) {
+            console.warn(e);
+        }
+    }
+
+    // Try to fetch live data
+    try {
+        const res = await fetch('/api/products', { cache: 'no-store' });
+        if (res.ok) {
+            const data = await res.json();
+            allProducts = data.products || RICHEMONTE_PRODUCTS;
+            localStorage.setItem('richemont_products.json', JSON.stringify(data));
+        }
+    } catch(err) {
+        console.error("Failed fetching live products:", err);
+    }
+
+    // Find product by slug
+    currentProduct = allProducts.find(p => p.slug === slug);
+    
+    if (!currentProduct) {
+        showError('Produkt nicht gefunden');
+        return;
+    }
+
+    renderProduct();
+    renderRelatedProducts();
+}
+
+function renderProduct() {
+    const container = document.getElementById('productContainer');
+    
+    if (!currentProduct) {
+        showError('Produkt nicht gefunden');
+        return;
+    }
+
+    const isDiscounted = currentProduct.discountPrice && Number(currentProduct.discountPrice) < Number(currentProduct.price);
+    
+    let priceHTML = '';
+    if (isDiscounted) {
+        priceHTML = `
+            <div class="product-price discounted">
+                <span class="original">${Number(currentProduct.price).toFixed(2)} €</span>
+                <span class="sale-price">${Number(currentProduct.discountPrice).toFixed(2)} €</span>
+            </div>
+        `;
+    } else {
+        priceHTML = `<div class="product-price">${Number(currentProduct.price).toFixed(2)} €</div>`;
+    }
+
+    let sizesHTML = '';
+    if (currentProduct.sizes && currentProduct.sizes.length > 0) {
+        sizesHTML = `
+            <div class="spec-row">
+                <div class="spec-label">Größe</div>
+                <div class="size-selector">
+                    ${currentProduct.sizes.map(size => `
+                        <button class="size-btn" onclick="selectSize('${size}', this)">${size}</button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    container.innerHTML = `
+        <div class="product-grid">
+            <div class="product-image">
+                <img src="${currentProduct.image || 'Hemd-1.jpg'}" alt="${currentProduct.title}">
+            </div>
+            <div class="product-details">
+                <div class="product-header">
+                    <div class="product-number">Kollektion ${currentProduct.number}</div>
+                    <h1>${currentProduct.title}</h1>
+                </div>
+
+                ${priceHTML}
+
+                <div class="product-description">
+                    ${currentProduct.description}
+                </div>
+
+                <div class="product-specs">
+                    ${sizesHTML}
+                    
+                    ${currentProduct.material ? `
+                        <div class="spec-row">
+                            <div class="spec-label">Material</div>
+                            <div class="spec-value">${currentProduct.material}</div>
+                        </div>
+                    ` : ''}
+                    
+                    ${currentProduct.category ? `
+                        <div class="spec-row">
+                            <div class="spec-label">Kategorie</div>
+                            <div class="spec-value">${currentProduct.category}</div>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <button class="add-to-cart" onclick="addToCart()">In den Warenkorb</button>
+            </div>
+        </div>
+    `;
+
+    // Update page title
+    document.title = currentProduct.title + ' – Richemont Monaco';
+}
+
+function selectSize(size, element) {
+    selectedSize = size;
+    document.querySelectorAll('.size-btn').forEach(btn => btn.classList.remove('selected'));
+    element.classList.add('selected');
+}
+
+function addToCart() {
+    if (!currentProduct) return;
+    
+    let cartItem = {
+        ...currentProduct,
+        selectedSize: selectedSize
+    };
+
+    let cart = JSON.parse(localStorage.getItem('richemont_cart')) || [];
+    cart.push(cartItem);
+    localStorage.setItem('richemont_cart', JSON.stringify(cart));
+    updateCartCount(
+    let cart = JSON.parse(localStorage.getItem('richemont_cart')) || [];
+    cart.push(cartItem);
+    localStorage.setItem('richemont_cart', JSON.stringify(cart));
+
+    alert(`"${currentProduct.title}" wurde in den Warenkorb gelegt!`);
+}
+
+function renderRelatedProducts() {
+    if (!currentProduct || allProducts.length <= 1) {
+        document.getElementById('relatedSection').style.display = 'none';
+        return;
+    }
+
+    const related = allProducts.filter(p => p.slug !== currentProduct.slug).slice(0, 3);
+    
+    if (related.length === 0) {
+        document.getElementById('relatedSection').style.display = 'none';
+        return;
+    }
+
+    document.getElementById('relatedSection').style.display = 'block';
+    const grid = document.getElementById('relatedGrid');
+    
+    grid.innerHTML = related.map(product => `
+        <a href="product.html?slug=${product.slug}" class="related-item">
+            <div class="related-image">
+                <img src="${product.image || 'Hemd-1.jpg'}" alt="${product.title}">
+            </div>
+            <div class="related-info">
+                <h3>${product.title}</h3>
+                <div class="related-price">${Number(product.price).toFixed(2)} €</div>
+            </div>
+        </a>
+    `).join('');
+}
+
+function showError(message) {
+    const container = document.getElementById('productContainer');
+    container.innerHTML = `<div class="error-message">${message}</div>`;
+    document.getElementById('relatedSection').style.display = 'none';
+}
+</script>
+
+</body>
+</html>

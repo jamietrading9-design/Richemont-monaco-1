@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>Contact – Richemont</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Great+Vibes&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 2000;
+            padding: 30px 40px;
+            pointer-events: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .menu-toggle {
+            font-size: 14px;
+            letter-spacing: 4px;
+            cursor: pointer;
+            color: #fff;
+            pointer-events: auto;
+            display: inline-block;
+        }
+
+        .cart-icon {
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            text-decoration: none;
+            color: #fff;
+        }
+
+        .cart-icon::before {
+            content: "🛒";
+            font-size: 20px;
+            font-weight: 300;
+            opacity: 0.9;
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #fff;
+            color: #000;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .logo-container {
+            position: fixed;
+            top: 30px; 
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 2100;
+        }
+
+        .logo {
+            font-family: 'Great Vibes', cursive;
+            font-size: 28px;
+            color: #fff;
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+
+        .logo:hover {
+            opacity: 0.7;
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -320px;
+            width: 300px;
+            height: 100vh;
+            padding-top: 120px;
+            background: #080808;
+            border-right: 1px solid rgba(255,255,255,0.05);
+            transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .side-menu.active { left: 0; }
+
+        .side-menu a {
+            color: #888;
+            text-decoration: none;
+            padding: 20px 40px;
+            font-size: 12px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            transition: color 0.3s;
+        }
+
+        .side-menu a:hover { color: #fff; }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s;
+            z-index: 2500;
+        }
+
+        .overlay.active { opacity: 1; pointer-events: auto; }
+
+        .contact-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 150px 20px 100px;
+            text-align: center;
+        }
+
+        .contact-header {
+            margin-bottom: 60px;
+        }
+
+        .contact-header h1 {
+            font-size: 10px;
+            letter-spacing: 10px;
+            text-transform: uppercase;
+            font-weight: 300;
+            color: #555;
+        }
+
+        form {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group {
+            margin-bottom: 35px;
+        }
+
+        input, textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #222;
+            padding: 12px 0;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            letter-spacing: 1px;
+            outline: none;
+            transition: border-color 0.4s;
+        }
+
+        input:focus, textarea:focus {
+            border-bottom-color: #fff;
+        }
+
+        textarea {
+            height: 80px;
+            resize: none;
+        }
+
+        button {
+            background: transparent;
+            border: 1px solid #fff;
+            color: #fff;
+            padding: 18px;
+            font-size: 10px;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.4s;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        footer {
+            background: #000;
+            padding: 80px 40px 40px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .footer-logo {
+            font-family: 'Great Vibes', cursive;
+            font-size: 40px;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .footer-links a {
+            color: #666;
+            text-decoration: none;
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #fff;
+        }
+
+        .footer-bottom {
+            margin-top: 60px;
+            font-size: 9px;
+            letter-spacing: 2px;
+            color: #333;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 768px) {
+            .logo { font-size: 24px; }
+            form { max-width: 100%; }
+            .footer-links { flex-direction: column; gap: 20px; }
+            
+            nav {
+                padding: 20px 20px;
+            }
+            
+            .menu-toggle {
+                font-size: 24px;
+                letter-spacing: 1px;
+            }
+            
+            .contact-wrapper h1 {
+                font-size: 28px;
+                margin-bottom: 30px;
+            }
+            
+            .contact-form {
+                padding: 30px 20px;
+            }
+            
+            .form-group {
+                margin-bottom: 20px;
+            }
+            
+            .form-group label {
+                font-size: 11px;
+                margin-bottom: 8px;
+            }
+            
+            .form-group input,
+            .form-group textarea {
+                font-size: 14px;
+                padding: 12px;
+            }
+            
+            .submit-btn {
+                padding: 12px 30px;
+                font-size: 11px;
+            }
+            
+            footer {
+                padding: 60px 20px 30px;
+            }
+            
+            .footer-logo {
+                font-size: 32px;
+                margin-bottom: 30px;
+            }
+            
+            .footer-links a {
+                font-size: 9px;
+            }
+            
+            .footer-bottom {
+                font-size: 8px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .contact-wrapper h1 {
+                font-size: 24px;
+            }
+            
+            .contact-form {
+                padding: 25px 15px;
+            }
+            
+            .submit-btn {
+                width: 100%;
+                padding: 15px;
+            }
+        }
+        .menu-toggle {
+    font-family: 'Great Vibes', cursive; 
+    font-size: 32px;                     
+    letter-spacing: 2px;                
+    cursor: pointer;
+    color: #fff;
+    pointer-events: auto;
+    display: inline-block;
+    mix-blend-mode: difference;
+    text-decoration: none;
+    line-height: 1;                    
+}
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="#" onclick="toggleMenu(); return false;" class="menu-toggle">RM</a>
+        <a href="cart.html" class="cart-icon">
+            <span id="cartCount" class="cart-count" style="display: none;">0</span>
+        </a>
+    </nav>
+
+    <div class="logo-container">
+        <a href="index.html" class="logo">Richemont Monaco</a>
+    </div>
+
+    <div class="side-menu" id="sideMenu">
+        <a href="index.html">Home</a>
+        <a href="collections.html">Collections</a>
+        <a href="showroom.html">Showroom</a>
+        <a href="contact.html">Contact</a>
+    </div>
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+    <main class="contact-wrapper">
+        <div class="contact-header">
+            <h1>Contact</h1>
+        </div>
+
+        <form action="https://formspree.io/f/xeeneeab" method="POST">
+            <div class="input-group">
+                <input type="text" name="name" placeholder="DEINE NAME" required>
+            </div>
+            <div class="input-group">
+                <input type="email" name="email" placeholder="DEINE EMAIL" required>
+            </div>
+            <div class="input-group">
+                <textarea name="message" placeholder="DEINE NACHRICHT" required></textarea>
+            </div>
+            
+            <input type="text" name="_gotcha" style="display:none">
+            
+            <button type="submit">Abschicken </button>
+        </form>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="collections.html">Collections</a>
+                <a href="showroom.html">Showroom</a>
+                <a href="contact.html">Contact</a>
+                <a href="#">Instagram</a>
+                <a href="impressum.html">Impressum</a>
+            </div>
+            <div class="footer-bottom">&copy; 2026 Richemont Monaco</div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById('sideMenu').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('richemont_cart')) || [];
+            const countEl = document.getElementById('cartCount');
+            if (countEl) {
+                if (cart.length > 0) {
+                    countEl.textContent = cart.length;
+                    countEl.style.display = 'flex';
+                } else {
+                    countEl.style.display = 'none';
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCartCount();
+        });
+
+        window.addEventListener('storage', updateCartCount);
+        window.addEventListener('focus', updateCartCount);
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,42 @@
+backend:
+  name: git-gateway
+  branch: main
+
+local_backend: true
+
+media_folder: "webseite/uploads"
+public_folder: "/uploads"
+
+collections:
+  - name: "products"
+    label: "Products"
+    files:
+      - file: "webseite/products.json"
+        label: "Products data"
+        name: "products-data"
+        format: "json"
+        fields:
+          - { label: "Site title", name: "siteTitle", widget: "string" }
+          - { label: "Site subtitle", name: "siteSubtitle", widget: "string" }
+          - label: "Products"
+            name: "products"
+            widget: "list"
+            summary: "{{number}} — {{title}}"
+            fields:
+              - { label: "Slug", name: "slug", widget: "string" }
+              - { label: "Number", name: "number", widget: "string" }
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Description", name: "description", widget: "text" }
+              - { label: "Price", name: "price", widget: "number", value_type: "float", min: 0 }
+              - { label: "Currency", name: "currency", widget: "string", required: false }
+              - { label: "Image", name: "image", widget: "string" }
+              - { label: "Alt text", name: "alt", widget: "string", required: false }
+              - { label: "Material", name: "material", widget: "string", required: false }
+              - label: "Sizes"
+                name: "sizes"
+                widget: "list"
+                allow_add: true
+                field: { label: "Size", name: "size", widget: "string" }
+              - { label: "Category", name: "category", widget: "string", required: false }
+              - { label: "Detail page", name: "detailPage", widget: "string", required: false }
+              - { label: "Featured", name: "featured", widget: "boolean", required: false }

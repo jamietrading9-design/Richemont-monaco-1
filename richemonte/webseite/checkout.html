@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout - Richemont Monaco</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Great+Vibes&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: 'Inter', sans-serif;
+      background: #000;
+      color: #fff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #000;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    a {
+      color: #d7b98a;
+      text-decoration: none;
+    }
+
+    .page-shell {
+      width: min(1160px, calc(100% - 32px));
+    }
+
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding: 28px 32px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+    }
+
+    .site-header h1 {
+      margin: 0;
+      font-family: 'Great Vibes', cursive;
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      letter-spacing: 0.04em;
+      text-transform: none;
+      color: #fff;
+    }
+
+    .site-header span {
+      font-size: 0.75rem;
+      color: #aaa;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+    }
+
+    .checkout-layout {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 24px;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+    }
+
+    .product-summary h2,
+    .checkout-card h2 {
+      margin: 0 0 12px;
+      font-size: clamp(1.8rem, 2.5vw, 2.8rem);
+      letter-spacing: 0.04em;
+    }
+
+    .product-summary p,
+    .checkout-card p,
+    .checkout-card label {
+      color: #c7c7c7;
+      line-height: 1.8;
+    }
+
+    .product-details {
+      display: grid;
+      gap: 12px;
+      margin: 24px 0;
+    }
+
+    .product-meta {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .product-meta span {
+      display: inline-flex;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 14px;
+      font-size: 0.95rem;
+      color: #ddd;
+    }
+
+    .product-price {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-top: 12px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #f5f5f5;
+    }
+
+    .product-price .strike {
+      color: #7f7f7f;
+      text-decoration: line-through;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .image-preview {
+      width: 100%;
+      border-radius: 18px;
+      overflow: hidden;
+      min-height: 260px;
+      background: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .image-preview img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .checkout-card form {
+      display: grid;
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .field {
+      width: 100%;
+      display: grid;
+      gap: 10px;
+    }
+
+    .field label {
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #9a9a9a;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .field textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .button,
+    .button-outline {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 20px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: all 0.25s ease;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+
+    .button {
+      background: #d7b98a;
+      border-color: #d7b98a;
+      color: #050505;
+    }
+
+    .button:hover {
+      filter: brightness(0.95);
+    }
+
+    .button-outline {
+      border-color: rgba(255, 255, 255, 0.16);
+      background: transparent;
+      color: #f5f5f5;
+    }
+
+    .button-outline:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .empty-state {
+      color: #aaa;
+      text-align: center;
+      padding: 80px 20px;
+      font-size: 0.95rem;
+      line-height: 1.8;
+    }
+
+    .confirmation {
+      margin-top: 28px;
+      padding: 24px;
+      border-radius: 18px;
+      background: rgba(215, 185, 138, 0.08);
+      border: 1px solid rgba(215, 185, 138, 0.2);
+    }
+
+    .confirmation h3 {
+      margin: 0 0 10px;
+      color: #d7b98a;
+    }
+
+    @media (max-width: 980px) {
+      .checkout-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 14px;
+      }
+
+      .page-shell {
+        max-width: 100%;
+      }
+
+      .site-header,
+      .panel {
+        padding: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <h1>Richemont Monaco</h1>
+      <span>Checkout</span>
+    </header>
+
+    <main class="checkout-layout">
+      <section class="panel product-summary" id="productSummary">
+        <div class="empty-state">Wird geladen…</div>
+      </section>
+
+      <section class="panel checkout-card">
+        <div id="checkoutIntro">
+          <h2>Bestellung abschließen</h2>
+          <p>Überprüfen Sie Ihren Artikel, wählen Sie die Menge und geben Sie Ihre Lieferdaten ein.</p>
+        </div>
+
+        <div id="formWrapper">
+          <div class="empty-state">Wählen Sie zuerst ein Produkt aus.</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const searchParams = new URLSearchParams(window.location.search);
+    const requestedSlug = searchParams.get('slug') || '';
+
+    function normalizeSlug(value) {
+      return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    }
+
+    function formatPrice(value) {
+      if (value === null || value === undefined || value === '') return '—';
+      const number = Number(value);
+      if (Number.isNaN(number)) return String(value);
+      return new Intl.NumberFormat('de-DE', {
+        style: 'currency',
+        currency: 'EUR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(number);
+    }
+
+    function createMetadata(product) {
+      return `
+        <div class="image-preview">
+          ${product.image ? `<img src="${product.image}" alt="${product.title}" />` : '<span style="color:#666;">Kein Bild verfügbar</span>'}
+        </div>
+        <h2>${product.title || 'Produkt'}</h2>
+        <p>${product.description || 'Elegante Bestellung aus dem Richemont Katalog.'}</p>
+        <div class="product-details">
+          <div class="product-meta"><span>Material<span>${product.material || 'Nicht angegeben'}</span></span></div>
+          <div class="product-meta"><span>Größen<span>${(Array.isArray(product.sizes) && product.sizes.length) ? product.sizes.join(', ') : 'Einheitsgröße'}</span></span></div>
+          <div class="product-meta"><span>Kategorie<span>${product.category || product.collection || 'Signature collection'}</span></span></div>
+        </div>
+        <div class="product-price">
+          ${product.discountPrice && Number(product.discountPrice) < Number(product.price)
+            ? `<span class="strike">${formatPrice(product.price)}</span><strong>${formatPrice(product.discountPrice)}</strong>`
+            : `<strong>${formatPrice(product.price)}</strong>`
+          }
+        </div>
+      `;
+    }
+
+    function showProductNotFound() {
+      document.getElementById('productSummary').innerHTML = '<div class="empty-state">Produkt nicht gefunden. Bitte überprüfen Sie die URL oder wählen Sie ein anderes Produkt.</div>';
+      document.getElementById('formWrapper').innerHTML = '<div class="empty-state">Kein Checkout verfügbar, weil der Artikel nicht gefunden wurde.</div>';
+    }
+
+    function renderCheckoutForm(product) {
+      const productSummary = document.getElementById('productSummary');
+      const checkoutFormWrapper = document.getElementById('formWrapper');
+      productSummary.innerHTML = createMetadata(product);
+
+      const quantityOptions = [1, 2, 3, 4].map(value => `<option value="${value}">${value}</option>`).join('');
+      checkoutFormWrapper.innerHTML = `
+        <form id="checkoutForm">
+          <div class="field">
+            <label for="productTitle">Produkt</label>
+            <input type="text" id="productTitle" value="${product.title || ''}" readonly>
+          </div>
+          <div class="field">
+            <label for="quantity">Anzahl</label>
+            <select id="quantity" name="quantity">${quantityOptions}</select>
+          </div>
+          <div class="field">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" placeholder="Ihr Name" required>
+          </div>
+          <div class="field">
+            <label for="email">E-Mail</label>
+            <input type="email" id="email" name="email" placeholder="name@beispiel.de" required>
+          </div>
+          <div class="field">
+            <label for="address">Adresse</label>
+            <input type="text" id="address" name="address" placeholder="Straße, Hausnummer, PLZ, Stadt" required>
+          </div>
+          <div class="field">
+            <label for="notes">Anmerkungen</label>
+            <textarea id="notes" name="notes" placeholder="Wunschtext, Lieferhinweise oder Geschenkoptionen"></textarea>
+          </div>
+          <button class="button" type="submit">Bestellung absenden</button>
+        </form>
+        <div class="actions">
+          <a id="backToProduct" class="button-outline" href="${product.detailPage || `product.html?slug=${encodeURIComponent(product.slug || '')}`}">Zur Produktseite</a>
+          <a class="button-outline" href="/">Zur Startseite</a>
+        </div>
+      `;
+
+      const checkoutForm = document.getElementById('checkoutForm');
+      checkoutForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const quantity = Number(document.getElementById('quantity').value || 1);
+        const confirmation = document.createElement('div');
+        confirmation.className = 'confirmation';
+        confirmation.innerHTML = `
+          <h3>Bestellung erhalten</h3>
+          <p>Vielen Dank! Ihre Bestellung für <strong>${product.title}</strong> (${quantity} Stück) wurde erfasst. Wir melden uns in Kürze per E-Mail.</p>
+        `;
+        checkoutFormWrapper.appendChild(confirmation);
+        checkoutForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+
+    async function loadProduct() {
+      if (!requestedSlug) {
+        showProductNotFound();
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/products');
+        const data = await response.json();
+        const products = Array.isArray(data.products) ? data.products : [];
+        const normalizedRequested = normalizeSlug(requestedSlug);
+        const product = products.find((item) => {
+          const candidates = [item.slug, item.detailPage, item.number, `produkt${String(item.number || '').padStart(2, '0')}`];
+          return candidates.some((value) => normalizeSlug(value) === normalizedRequested);
+        });
+
+        if (!product) {
+          showProductNotFound();
+          return;
+        }
+
+        renderCheckoutForm(product);
+      } catch (error) {
+        console.error('Checkout load error:', error);
+        document.getElementById('productSummary').innerHTML = '<div class="empty-state">Fehler beim Laden des Produkts.</div>';
+        document.getElementById('formWrapper').innerHTML = '<div class="empty-state">Bitte versuchen Sie es später noch einmal.</div>';
+      }
+    }
+
+    loadProduct();
+  </script>
+</body>
+</html>
