@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <title>Contact – Richemont</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Great+Vibes&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/responsive.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
@@ -27,6 +28,7 @@
             right: 0;
             z-index: 2000;
             padding: 30px 40px;
+            background: transparent;
             pointer-events: none;
             display: flex;
             justify-content: space-between;
@@ -34,12 +36,21 @@
         }
 
         .menu-toggle {
-            font-size: 14px;
-            letter-spacing: 4px;
+            font-family: 'Great Vibes', cursive;
+            font-size: 32px;
+            letter-spacing: 2px;
             cursor: pointer;
             color: #fff;
             pointer-events: auto;
             display: inline-block;
+            mix-blend-mode: difference;
+            text-decoration: none;
+            line-height: 1;
+            transition: opacity 0.3s;
+        }
+
+        .menu-toggle:hover {
+            opacity: 0.7;
         }
 
         .cart-icon {
@@ -80,11 +91,12 @@
 
         .logo-container {
             position: fixed;
-            top: 30px; 
+            top: 30px;
             left: 50%;
             transform: translateX(-50%);
-            text-align: center;
             z-index: 2100;
+            white-space: nowrap;
+            text-align: center;
         }
 
         .logo {
@@ -93,6 +105,7 @@
             color: #fff;
             text-decoration: none;
             transition: opacity 0.3s;
+            display: inline-block;
         }
 
         .logo:hover {
@@ -106,15 +119,27 @@
             width: 300px;
             height: 100vh;
             padding-top: 120px;
+            padding-bottom: 40px;
             background: #080808;
             border-right: 1px solid rgba(255,255,255,0.05);
             transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             z-index: 3000;
             display: flex;
             flex-direction: column;
-        }
+                }
 
         .side-menu.active { left: 0; }
+
+        .menu-top {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-bottom {
+            display: flex;
+            flex-direction: column;
+            padding: 0 40px;
+        }
 
         .side-menu a {
             color: #888;
@@ -127,6 +152,26 @@
         }
 
         .side-menu a:hover { color: #fff; }
+
+        .menu-cart-icon {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 20px 40px;
+            color: #888;
+            font-size: 12px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: color 0.3s;
+            text-decoration: none;
+        }
+
+        .menu-cart-icon:hover { color: #fff; }
+
+        .menu-cart-icon::before {
+            display: none;
+        }
 
         .overlay {
             position: fixed;
@@ -340,18 +385,6 @@
                 padding: 15px;
             }
         }
-        .menu-toggle {
-    font-family: 'Great Vibes', cursive; 
-    font-size: 32px;                     
-    letter-spacing: 2px;                
-    cursor: pointer;
-    color: #fff;
-    pointer-events: auto;
-    display: inline-block;
-    mix-blend-mode: difference;
-    text-decoration: none;
-    line-height: 1;                    
-}
     </style>
 </head>
 <body>
@@ -368,10 +401,11 @@
     </div>
 
     <div class="side-menu" id="sideMenu">
-        <a href="index.html">Home</a>
-        <a href="collections.html">Collections</a>
-        <a href="showroom.html">Showroom</a>
-        <a href="contact.html">Contact</a>
+            <a href="index.html">Home</a>
+            <a href="collections.html">Collections</a>
+            <a href="showroom.html">Showroom</a>
+            <a href="contact.html">Contact</a>
+            <a href="cart.html" class="menu-cart-icon">Warenkorb</a>
     </div>
     <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
@@ -380,19 +414,17 @@
             <h1>Contact</h1>
         </div>
 
-        <form action="https://formspree.io/f/xeeneeab" method="POST">
+        <form id="contactForm" method="POST" action="#">
             <div class="input-group">
-                <input type="text" name="name" placeholder="DEINE NAME" required>
+                <input type="text" id="name" name="name" placeholder=" NAME" required>
             </div>
             <div class="input-group">
-                <input type="email" name="email" placeholder="DEINE EMAIL" required>
+                <input type="email" id="email" name="email" placeholder=" EMAIL" required>
             </div>
             <div class="input-group">
-                <textarea name="message" placeholder="DEINE NACHRICHT" required></textarea>
+                <textarea id="message" name="message" placeholder="Nachricht" required></textarea>
             </div>
-            
-            <input type="text" name="_gotcha" style="display:none">
-            
+            <div class="input-group" id="formMessage" style="display:none; color:#d7b98a; font-size:0.9rem; text-align:center; margin-bottom:20px;"></div>
             <button type="submit">Abschicken </button>
         </form>
     </main>
@@ -432,6 +464,51 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             updateCartCount();
+
+            const contactForm = document.getElementById('contactForm');
+            const formMessage = document.getElementById('formMessage');
+
+            contactForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                formMessage.style.display = 'none';
+                formMessage.textContent = '';
+
+                const name = document.getElementById('name').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const message = document.getElementById('message').value.trim();
+
+                if (!name || !email || !message) {
+                    formMessage.textContent = 'Bitte füllen Sie alle Felder aus.';
+                    formMessage.style.display = 'block';
+                    return;
+                }
+
+                try {
+                    const response = await fetch('https://formspree.io/f/xeeneeab', {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json' },
+                        body: new FormData(contactForm)
+                    });
+
+                    if (response.ok) {
+                        formMessage.textContent = 'Vielen Dank! Ihre Nachricht wurde gesendet.';
+                        formMessage.style.display = 'block';
+                        formMessage.style.color = '#d7b98a';
+                        contactForm.reset();
+                    } else {
+                        formMessage.textContent = 'Beim Senden ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.';
+                        formMessage.style.display = 'block';
+                        formMessage.style.color = '#d7b98a';
+                    }
+                } catch (error) {
+                    console.error('Kontaktformular-Fehler', error);
+                    formMessage.textContent = 'Beim Senden ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.';
+                    formMessage.style.display = 'block';
+                    formMessage.style.color = '#d7b98a';
+                }
+            });
+
+            // inline onclick on the menu link handles toggling; removed delegated duplicate handler to avoid double-toggle
         });
 
         window.addEventListener('storage', updateCartCount);

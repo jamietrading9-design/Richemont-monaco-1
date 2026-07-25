@@ -1,0 +1,24 @@
+{
+  "siteTitle": "Richemont Monaco",
+  "siteSubtitle": "Designer Clothing",
+  "maintenance": {
+    "active": false,
+    "message": "Wartungsarbeiten. In Kürze sind wir wieder für Sie da.",
+    "availableAt": ""
+  },
+  "siteContent": {
+    "heroImage": "",
+    "homepageHeadline": "",
+    "homepageDescription": "",
+    "announcementText": ""
+  },
+  "invoiceDetails": {
+    "companyName": "Richemont Monaco",
+    "owner": "Alfred Reinberg",
+    "address": "Bojum 1\n24402 Esgurs",
+    "phone": "04637677",
+    "bankName": "Nord Ostsee Sparkasse",
+    "iban": "DE23456787654",
+    "bic": "NOLADE21ESG"
+  }
+}

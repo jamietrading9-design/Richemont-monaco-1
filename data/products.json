@@ -1,0 +1,92 @@
+[
+  {
+    "number": "01",
+    "title": "Richemont Premium Seide Hemd",
+    "slug": "richemont-premium-seide-hemd",
+    "category": "Hemden",
+    "price": 500,
+    "discountPrice": null,
+    "detailPage": "produkt01.html",
+    "description": "Ein luxuriöses Seidenhemd aus feinstem Material mit eleganter Verarbeitung. Perfekt für jeden anspruchsvollen Anlass.",
+    "image": "/Hemd-1.jpg",
+    "featured": true
+  },
+  {
+    "number": "02",
+    "title": "Richemont Wool Jacket",
+    "slug": "richemont-wool-jacket",
+    "category": "Jacken",
+    "price": 799,
+    "discountPrice": 599,
+    "description": "Elegante Wollmischung Jacke mit zeitlosem Design. Hohe Qualität und Verarbeitung.",
+    "material": "Virgin Wool Mix",
+    "sizes": [
+      "48",
+      "50",
+      "52",
+      "54"
+    ],
+    "image": "/Hemd-6.jpg",
+    "featured": true,
+    "detailPage": "produkt02.html"
+  },
+  {
+    "number": "03",
+    "title": "Richemont Baumwoll T-Shirt",
+    "slug": "richemont-baumwoll-tshirt",
+    "category": "T-Shirts",
+    "price": 249,
+    "discountPrice": null,
+    "description": "Klassisches T-Shirt aus 100% Baumwolle mit feiner Verarbeitung und modernem Schnitt.",
+    "material": "100% Baumwolle",
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "image": "/Hemd-3.jpg",
+    "featured": true,
+    "detailPage": "produkt03.html"
+  },
+  {
+    "number": "04",
+    "title": "Richemont Linen Hemd",
+    "slug": "richemont-linen-hemd",
+    "category": "Hemden",
+    "price": 349,
+    "discountPrice": null,
+    "description": "Leichtes Leinen-Hemd mit modernem Schnitt. Ideal für warme Tage und sommerliche Looks.",
+    "material": "100% Leinen",
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL"
+    ],
+    "image": "/Hemd-4.jpg",
+    "featured": true,
+    "detailPage": "produkt04.html"
+  },
+  {
+    "number": "05",
+    "title": "Richemont Classic Hose",
+    "slug": "richemont-classic-hose",
+    "category": "Hosen",
+    "price": 429,
+    "discountPrice": null,
+    "description": "Elegante Baumwollhose mit perfektem Sitz und zeitlosem Design. Ein Klassiker für jeden Kleiderschrank.",
+    "material": "98% Baumwolle, 2% Elastan",
+    "sizes": [
+      "30",
+      "32",
+      "34",
+      "36",
+      "38"
+    ],
+    "image": "/Hemd-5.jpg",
+    "featured": true,
+    "detailPage": "produkt05.html"
+  }
+]

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buchhaltung - Richemont Monaco</title>
+  <link rel="stylesheet" href="../css/responsive.css">
+  <style>
+    body { margin:0; min-height:100vh; font-family:'Inter',sans-serif; color:#fff; background:#000; }
+    header { position:fixed; top:0; left:0; right:0; height:60px; background:#090909; border-bottom:1px solid #222; display:flex; align-items:center; justify-content:space-between; padding:0 30px; z-index:100; }
+    .brand { font-size:13px; letter-spacing:0.2em; text-transform:uppercase; font-weight:700; }
+    .header-actions { display:flex; gap:12px; }
+    .btn { border:1px solid #444; background:transparent; color:#fff; padding:10px 14px; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; }
+    .btn:hover { background:#fff; color:#000; }
+    .container { display:flex; margin-top:60px; }
+    nav { width:220px; background:#080808; border-right:1px solid #222; padding:24px 16px; min-height:calc(100vh - 60px); }
+    nav a { display:block; color:#999; text-decoration:none; text-transform:uppercase; font-size:11px; letter-spacing:0.18em; margin-bottom:14px; padding:10px 12px; border-left:3px solid transparent; }
+    nav a.active, nav a:hover { color:#fff; border-left-color:#fff; background:#111; }
+    main { flex:1; padding:30px; overflow:auto; min-height:calc(100vh - 60px); }
+    h1 { font-size:28px; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:6px; }
+    p.sub { color:#777; font-size:12px; letter-spacing:0.15em; margin-bottom:26px; }
+    .card { background:#090909; border:1px solid #222; padding:26px; margin-bottom:20px; }
+    .grid { display:grid; gap:18px; grid-template-columns:1fr 1fr; }
+    .full { grid-column:1/-1; }
+    label { display:block; font-size:11px; color:#888; text-transform:uppercase; letter-spacing:0.18em; margin-bottom:8px; }
+    .field, select { width:100%; padding:12px 14px; background:#000; border:1px solid #222; color:#fff; font-size:13px; }
+    .field:focus, select:focus { outline:none; border-color:#555; }
+    .btn-primary { background:#fff; color:#000; border:none; }
+    .table { width:100%; border-collapse:collapse; margin-top:12px; }
+    .table th, .table td { border-bottom:1px solid #222; padding:12px 10px; text-align:left; font-size:13px; }
+    .table th { color:#999; font-size:11px; text-transform:uppercase; letter-spacing:0.16em; }
+    .table tbody tr:hover { background:rgba(255,255,255,0.03); }
+    .status { display:inline-block; padding:4px 10px; border-radius:999px; font-size:11px; text-transform:uppercase; letter-spacing:0.12em; }
+    .status.open { background:#223322; color:#b9f7b9; }
+    .status.paid { background:#223b5d; color:#8cc2ff; }
+    .status.processing { background:#444421; color:#f8f38b; }
+    .card.hidden { display:none; }
+    .metrics { display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); margin-bottom:18px; }
+    .metric-card { background:#111; border:1px solid #222; border-radius:18px; padding:18px; }
+    .metric-card span { display:block; color:#888; font-size:11px; text-transform:uppercase; letter-spacing:0.15em; margin-bottom:10px; }
+    .metric-card strong { font-size:24px; display:block; }
+    .summary-actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:16px; }
+    .expense-form { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">Richemont Monaco Buchhaltung</div>
+    <div class="header-actions">
+      <div id="authUser" class="sub" style="color:#999; font-size:11px; letter-spacing:0.12em;">Angemeldet als: –</div>
+      <button id="logoutBtn" class="btn">Logout</button>
+    </div>
+  </header>
+  <div class="container">
+    <nav>
+      <a href="#summary" class="active">Übersicht</a>
+      <a href="#orders">Rechnungen</a>
+      <a href="#expenses">Ausgaben</a>
+      <a href="#cashbook">Kassenbuch</a>
+      <a href="#users">Benutzer</a>
+      <a href="#settings">Einstellungen</a>
+      <a href="#password">Passwort ändern</a>
+    </nav>
+    <main>
+      <section id="summary" class="card">
+        <h1>Übersicht</h1>
+        <p class="sub">Wichtige Kennzahlen der Buchhaltung auf einer Seite.</p>
+        <div class="metrics" id="summaryMetrics">
+          <div class="metric-card">
+            <span>Umsatz</span>
+            <strong id="metricRevenue">€ 0.00</strong>
+          </div>
+          <div class="metric-card">
+            <span>Ausgaben</span>
+            <strong id="metricExpenses">€ 0.00</strong>
+          </div>
+          <div class="metric-card">
+            <span>Gewinn</span>
+            <strong id="metricProfit">€ 0.00</strong>
+          </div>
+          <div class="metric-card">
+            <span>Offene Rechnungen</span>
+            <strong id="metricOpenOrders">0</strong>
+          </div>
+        </div>
+        <div class="summary-actions">
+          <button id="refreshSummary" class="btn">Aktualisieren</button>
+          <button id="exportDatev" class="btn btn-primary">DATEV Export</button>
+        </div>
+      </section>
+
+      <section id="orders" class="card hidden">
+        <h1>Rechnungen</h1>
+        <p class="sub">Alle Bestellungen und Rechnungen auf einen Blick.</p>
+        <div id="ordersTable"></div>
+      </section>
+
+      <section id="expenses" class="card hidden">
+        <h1>Ausgaben</h1>
+        <p class="sub">Belege, Lieferanten und Kosten erfassen.</p>
+        <div class="grid expense-form">
+          <div>
+            <label>Lieferant</label>
+            <input id="expenseSupplier" class="field" type="text" />
+          </div>
+          <div>
+            <label>Beschreibung</label>
+            <input id="expenseDescription" class="field" type="text" />
+          </div>
+          <div>
+            <label>Betrag</label>
+            <input id="expenseAmount" class="field" type="number" step="0.01" />
+          </div>
+          <div>
+            <label>Steuersatz (%)</label>
+            <input id="expenseTaxRate" class="field" type="number" step="0.1" value="19" />
+          </div>
+          <div>
+            <label>Datum</label>
+            <input id="expenseDate" class="field" type="date" />
+          </div>
+          <div>
+            <label>Kategorie</label>
+            <input id="expenseCategory" class="field" type="text" value="Allgemein" />
+          </div>
+        </div>
+        <button id="addExpense" class="btn btn-primary">Ausgabe speichern</button>
+        <div id="expenseMessage" class="sub"></div>
+        <div id="expensesTable"></div>
+      </section>
+
+      <section id="cashbook" class="card hidden">
+        <h1>Kassenbuch</h1>
+        <p class="sub">Kassenbuch-Einträge und ODT-Export.</p>
+        <div class="summary-actions">
+          <button id="loadCashbook" class="btn">Kassenbuch laden</button>
+          <button id="exportCashbook" class="btn btn-primary">Kassenbuch als ODT</button>
+        </div>
+        <div id="cashbookTable"></div>
+      </section>
+
+      <section id="users" class="card hidden">
+        <h1>Benutzer</h1>
+        <p class="sub">Neue Benutzer mit Rolle hinzufügen und bestehende verwalten.</p>
+        <div class="grid expense-form">
+          <div>
+            <label>Benutzername</label>
+            <input id="newUserName" class="field" type="text" />
+          </div>
+          <div>
+            <label>Passwort</label>
+            <input id="newUserPassword" class="field" type="password" />
+          </div>
+          <div>
+            <label>Rolle</label>
+            <select id="newUserRole" class="field">
+              <option value="admin">Admin</option>
+              <option value="user">User</option>
+            </select>
+          </div>
+          <div>
+            <label>Aktiv</label>
+            <select id="newUserActive" class="field">
+              <option value="true">Ja</option>
+              <option value="false">Nein</option>
+            </select>
+          </div>
+        </div>
+        <button id="createUserBtn" class="btn btn-primary">Benutzer hinzufügen</button>
+        <div id="userMessage" class="sub"></div>
+        <div id="usersTable"></div>
+      </section>
+
+      <section id="settings" class="card hidden">
+        <h1>Einstellungen</h1>
+        <p class="sub">Allgemeine Buchhaltungs-Daten</p>
+        <div class="grid">
+          <div>
+            <label>Firmennamen</label>
+            <input id="accountingCompany" class="field" type="text" />
+          </div>
+          <div>
+            <label>Bank</label>
+            <input id="accountingBank" class="field" type="text" />
+          </div>
+          <div>
+            <label>IBAN</label>
+            <input id="accountingIban" class="field" type="text" />
+          </div>
+          <div>
+            <label>BIC</label>
+            <input id="accountingBic" class="field" type="text" />
+          </div>
+        </div>
+        <button id="saveSettings" class="btn btn-primary">Speichern</button>
+      </section>
+
+      <section id="password" class="card hidden">
+        <h1>Passwort ändern</h1>
+        <p class="sub">Eigenes Passwort sicher aktualisieren.</p>
+        <div class="grid full">
+          <div>
+            <label>Aktuelles Passwort</label>
+            <input id="currentPassword" class="field" type="password" />
+          </div>
+          <div>
+            <label>Neues Passwort</label>
+            <input id="newPassword" class="field" type="password" />
+          </div>
+          <div>
+            <label>Neues Passwort wiederholen</label>
+            <input id="newPasswordConfirm" class="field" type="password" />
+          </div>
+        </div>
+        <button id="changePassword" class="btn btn-primary">Passwort ändern</button>
+        <p id="passwordMessage" class="sub"></p>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const tokenKey = 'adminToken';
+
+    async function fetchAuth(endpoint, method='GET', body) {
+      const token = localStorage.getItem(tokenKey) || localStorage.getItem('richemont_admin_token');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = 'Bearer ' + token;
+      const res = await fetch(endpoint, { method, headers, body: body ? JSON.stringify(body) : undefined });
+      if (res.status === 401 || res.status === 403) { window.location.href = '/admin.html'; return null; }
+      return res.json();
+    }
+
+    function showSection(sectionId) {
+      document.querySelectorAll('main section').forEach(section => {
+        section.classList.toggle('hidden', section.id !== sectionId);
+      });
+      document.querySelectorAll('nav a').forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === `#${sectionId}`);
+      });
+      history.replaceState(null, '', `#${sectionId}`);
+      if (sectionId === 'orders') loadOrders();
+      if (sectionId === 'cashbook') loadCashbook();
+      if (sectionId === 'users') loadUsers();
+    }
+
+    document.querySelectorAll('nav a').forEach(link => {
+      link.addEventListener('click', event => {
+        event.preventDefault();
+        const sectionId = link.getAttribute('href').replace('#', '');
+        showSection(sectionId);
+      });
+    });
+
+    const initialSection = window.location.hash ? window.location.hash.replace('#', '') : 'summary';
+    showSection(initialSection);
+
+    async function loadOrders() {
+      const data = await fetchAuth('/api/orders');
+      if (!data || !data.success) return;
+      const orders = data.orders || [];
+      const table = document.createElement('table');
+      table.className='table';
+      table.innerHTML = `<thead><tr><th>ID</th><th>Kunde</th><th>Summe</th><th>Status</th><th>Aktion</th></tr></thead><tbody>${orders.map(order => {
+        const statusClass = order.status === 'paid' ? 'paid' : order.status === 'processing' ? 'processing' : 'open';
+        const statusOptions = ['offen', 'processing', 'paid'].map(status => `
+          <option value="${status}" ${order.status === status ? 'selected' : ''}>${status}</option>
+        `).join('');
+        return `<tr><td>${order.id}</td><td>${order.customer?.name || '-'}<br><small>${order.customer?.email || ''}</small></td><td>€${(order.total||0).toFixed(2)}</td><td><select class="field" data-status-id="${order.id}">${statusOptions}</select><br><span class="status ${statusClass}">${order.status || 'offen'}</span></td><td><a href="/api/orders/${order.id}/invoice" target="_blank" class="btn">PDF</a> <button class="btn" data-save="${order.id}">Speichern</button> <button class="btn" data-delete="${order.id}">Löschen</button></td></tr>`;
+      }).join('')}</tbody>`;
+      document.getElementById('ordersTable').innerHTML = '';
+      document.getElementById('ordersTable').appendChild(table);
+      document.querySelectorAll('#ordersTable button[data-save]').forEach(button => {
+        button.addEventListener('click', async () => {
+          const orderId = button.dataset.save;
+          const select = document.querySelector(`#ordersTable select[data-status-id="${orderId}"]`);
+          if (!select) return;
+          const status = select.value;
+          const res = await fetchAuth(`/api/orders/${encodeURIComponent(orderId)}`, 'PATCH', { status });
+          if (!res) return;
+          if (res.success) {
+            loadOrders();
+            loadSummary();
+          } else {
+            alert(res.error || 'Fehler beim Aktualisieren der Bestellung.');
+          }
+        });
+      });
+      document.querySelectorAll('#ordersTable button[data-delete]').forEach(button => {
+        button.addEventListener('click', async () => {
+          const orderId = button.dataset.delete;
+          const confirmResult = confirm(`Bestellung ${orderId} wirklich löschen?`);
+          if (!confirmResult) return;
+          const res = await fetchAuth(`/api/orders/${encodeURIComponent(orderId)}`, 'DELETE');
+          if (!res) return;
+          if (res.success) {
+            loadOrders();
+            loadSummary();
+          } else {
+            alert(res.error || 'Fehler beim Löschen der Bestellung.');
+          }
+        });
+      });
+    }
+
+    async function loadSettings() {
+      const data = await fetchAuth('/api/settings');
+      if (!data) return;
+      document.getElementById('accountingCompany').value = data.invoiceDetails?.companyName || 'Richemont Monaco';
+      document.getElementById('accountingBank').value = data.invoiceDetails?.bankName || 'Nord Ostsee Sparkasse';
+      document.getElementById('accountingIban').value = data.invoiceDetails?.iban || 'DE23456787654';
+      document.getElementById('accountingBic').value = data.invoiceDetails?.bic || 'NOLADE21ESG';
+    }
+
+    async function saveSettings() {
+      const data = {
+        invoiceDetails: {
+          companyName: document.getElementById('accountingCompany').value,
+          bankName: document.getElementById('accountingBank').value,
+          iban: document.getElementById('accountingIban').value,
+          bic: document.getElementById('accountingBic').value,
+        }
+      };
+      const res = await fetchAuth('/api/settings', 'POST', data);
+      if (!res) return;
+      alert(res.success ? 'Einstellungen gespeichert' : 'Speichern fehlgeschlagen');
+    }
+
+    async function loadSummary() {
+      const data = await fetchAuth('/api/bookkeeping/summary');
+      if (!data || !data.success) return;
+      document.getElementById('metricRevenue').textContent = `€ ${data.revenue.toFixed(2)}`;
+      document.getElementById('metricExpenses').textContent = `€ ${data.expenseTotal.toFixed(2)}`;
+      document.getElementById('metricProfit').textContent = `€ ${data.netProfit.toFixed(2)}`;
+      document.getElementById('metricOpenOrders').textContent = data.openOrders;
+    }
+
+    async function loadExpenses() {
+      const data = await fetchAuth('/api/expenses');
+      if (!data || !data.success) return;
+      const expenses = data.expenses || [];
+      const table = document.createElement('table');
+      table.className = 'table';
+      table.innerHTML = `<thead><tr><th>Datum</th><th>Lieferant</th><th>Beschreibung</th><th>Betrag</th><th>Steuer</th><th>Kategorie</th><th>Erfasst von</th><th>Aktion</th></tr></thead><tbody>${expenses.map(expense => `
+        <tr>
+          <td>${expense.date}</td>
+          <td>${expense.supplier}</td>
+          <td>${expense.description || '-'}</td>
+          <td>€ ${expense.amount.toFixed(2)}</td>
+          <td>€ ${expense.taxAmount.toFixed(2)} (${expense.taxRate || 0}%)</td>
+          <td>${expense.category}</td>
+          <td>${expense.createdBy || '–'}</td>
+          <td><button class="btn" data-id="${expense.id}">Löschen</button></td>
+        </tr>
+      `).join('')}</tbody>`;
+      document.getElementById('expensesTable').innerHTML = '';
+      document.getElementById('expensesTable').appendChild(table);
+      table.querySelectorAll('button[data-id]').forEach(button => {
+        button.addEventListener('click', async () => {
+          await deleteExpense(button.dataset.id);
+        });
+      });
+    }
+
+    async function createExpense() {
+      const supplier = document.getElementById('expenseSupplier').value.trim();
+      const description = document.getElementById('expenseDescription').value.trim();
+      const amount = Number(document.getElementById('expenseAmount').value);
+      const taxRate = Number(document.getElementById('expenseTaxRate').value);
+      const date = document.getElementById('expenseDate').value;
+      const category = document.getElementById('expenseCategory').value.trim() || 'Allgemein';
+      const msg = document.getElementById('expenseMessage');
+      msg.textContent = '';
+      if (!supplier || !amount || !date) {
+        msg.textContent = 'Lieferant, Betrag und Datum sind erforderlich.';
+        return;
+      }
+      const res = await fetchAuth('/api/expenses', 'POST', { supplier, description, amount, taxRate, date, category });
+      if (!res) return;
+      if (res.success) {
+        msg.textContent = 'Ausgabe gespeichert.';
+        document.getElementById('expenseSupplier').value = '';
+        document.getElementById('expenseDescription').value = '';
+        document.getElementById('expenseAmount').value = '';
+        document.getElementById('expenseDate').value = '';
+        loadExpenses();
+        loadSummary();
+      } else {
+        msg.textContent = res.error || 'Fehler beim Speichern der Ausgabe.';
+      }
+    }
+
+    async function deleteExpense(expenseId) {
+      const res = await fetchAuth(`/api/expenses/${expenseId}`, 'DELETE');
+      if (!res) return;
+      if (res.success) {
+        loadExpenses();
+        loadSummary();
+      } else {
+        alert(res.error || 'Fehler beim Löschen der Ausgabe.');
+      }
+    }
+
+    async function exportDatev() {
+      const res = await fetchAuth('/api/bookkeeping/export-datev');
+      if (!res || !res.success) return;
+      const blob = new Blob([JSON.stringify(res.datevData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'datev-export.json';
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(url);
+      a.remove();
+    }
+
+    async function loadCashbook() {
+      const res = await fetchAuth('/api/bookkeeping/cashbook');
+      if (!res || !res.success) return;
+      const entries = res.entries || [];
+      const table = document.createElement('table');
+      table.className = 'table';
+      table.innerHTML = `<thead><tr><th>Typ</th><th>Datum</th><th>Partner</th><th>Beschreibung</th><th>Betrag</th><th>Steuer</th><th>Kategorie</th><th>Erfasst von</th></tr></thead><tbody>${entries.map(entry => `
+        <tr>
+          <td>${entry.type}</td>
+          <td>${entry.date}</td>
+          <td>${entry.partner}</td>
+          <td>${entry.description}</td>
+          <td>€ ${Number(entry.amount).toFixed(2)}</td>
+          <td>€ ${Number(entry.tax).toFixed(2)}</td>
+          <td>${entry.category}</td>
+          <td>${entry.createdBy || '–'}</td>
+        </tr>
+      `).join('')}</tbody>`;
+      document.getElementById('cashbookTable').innerHTML = '';
+      document.getElementById('cashbookTable').appendChild(table);
+    }
+
+    async function loadUsers() {
+      const res = await fetchAuth('/api/users');
+      if (!res || !res.users) return;
+      const users = res.users || [];
+      const table = document.createElement('table');
+      table.className = 'table';
+      table.innerHTML = `<thead><tr><th>Benutzer</th><th>Rolle</th><th>Aktiv</th><th>Aktion</th></tr></thead><tbody>${users.map(user => `
+        <tr>
+          <td>${user.username}</td>
+          <td>${user.role}</td>
+          <td>${user.active ? 'Ja' : 'Nein'}</td>
+          <td><button class="btn" data-user="${user.username}">Löschen</button></td>
+        </tr>
+      `).join('')}</tbody>`;
+      document.getElementById('usersTable').innerHTML = '';
+      document.getElementById('usersTable').appendChild(table);
+      table.querySelectorAll('button[data-user]').forEach(button => {
+        button.addEventListener('click', async () => {
+          const username = button.dataset.user;
+          if (!confirm(`Benutzer ${username} wirklich löschen?`)) return;
+          const deleteRes = await fetchAuth(`/api/users/${encodeURIComponent(username)}`, 'DELETE');
+          if (!deleteRes) return;
+          if (deleteRes.success) {
+            loadUsers();
+          } else {
+            alert(deleteRes.error || 'Fehler beim Löschen des Benutzers.');
+          }
+        });
+      });
+    }
+
+    async function createUser() {
+      const username = document.getElementById('newUserName').value.trim();
+      const password = document.getElementById('newUserPassword').value;
+      const role = document.getElementById('newUserRole').value;
+      const active = document.getElementById('newUserActive').value === 'true';
+      const msg = document.getElementById('userMessage');
+      msg.textContent = '';
+      if (!username || !password) {
+        msg.textContent = 'Benutzername und Passwort sind erforderlich.';
+        return;
+      }
+      const res = await fetchAuth('/api/users', 'POST', { username, password, role, active });
+      if (!res) return;
+      if (res.success) {
+        msg.textContent = 'Benutzer angelegt.';
+        document.getElementById('newUserName').value = '';
+        document.getElementById('newUserPassword').value = '';
+        await loadUsers();
+      } else {
+        msg.textContent = res.error || 'Fehler beim Anlegen des Benutzers.';
+      }
+    }
+
+    async function exportCashbook() {
+      const token = localStorage.getItem(tokenKey);
+      const headers = {};
+      if (token) headers.Authorization = 'Bearer ' + token;
+      const res = await fetch('/api/bookkeeping/export-cashbook', { method: 'GET', headers });
+      if (!res || res.status !== 200) {
+        alert('Kassenbuch-Export fehlgeschlagen.');
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'kassenbuch.odt';
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(url);
+      a.remove();
+    }
+
+    async function changePassword() {
+      const currentPassword = document.getElementById('currentPassword').value;
+      const newPassword = document.getElementById('newPassword').value;
+      const newPasswordConfirm = document.getElementById('newPasswordConfirm').value;
+      const msg = document.getElementById('passwordMessage');
+      msg.textContent = '';
+      if (!currentPassword || !newPassword || !newPasswordConfirm) { msg.textContent = 'Alle Felder ausfüllen.'; return; }
+      if (newPassword !== newPasswordConfirm) { msg.textContent = 'Neue Passwörter stimmen nicht überein.'; return; }
+      const res = await fetchAuth('/api/auth/change-password', 'POST', { currentPassword, newPassword });
+      if (!res) return;
+      msg.textContent = res.success ? 'Passwort geändert.' : res.error || 'Fehler beim Ändern';
+    }
+
+    async function loadUser() {
+      const data = await fetchAuth('/api/auth/me');
+      if (!data) return;
+      document.getElementById('authUser').textContent = `Angemeldet als: ${data.username}`;
+    }
+
+    document.getElementById('saveSettings').addEventListener('click', saveSettings);
+    document.getElementById('changePassword').addEventListener('click', changePassword);
+    document.getElementById('logoutBtn').addEventListener('click', () => { localStorage.removeItem(tokenKey); localStorage.removeItem('richemont_admin_token'); window.location.href='/admin.html'; });
+    document.getElementById('refreshSummary').addEventListener('click', loadSummary);
+    document.getElementById('exportDatev').addEventListener('click', exportDatev);
+    document.getElementById('addExpense').addEventListener('click', createExpense);
+    document.getElementById('loadCashbook').addEventListener('click', loadCashbook);
+    document.getElementById('exportCashbook').addEventListener('click', exportCashbook);
+    document.getElementById('createUserBtn').addEventListener('click', createUser);
+
+    loadUser();
+    loadSummary();
+    loadOrders();
+    loadExpenses();
+    loadSettings();
+  </script>
+</body>
+</html>

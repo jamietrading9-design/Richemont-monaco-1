@@ -53,6 +53,7 @@
       img.src = image;
       img.alt = title;
       img.loading = 'lazy';
+      img.decoding = 'async';
       media.appendChild(img);
     } else {
       const placeholder = document.createElement('div');
@@ -246,7 +247,7 @@
 
       root.innerHTML = `
         <article class="product-detail">
-          <div class="product-detail__media">${image ? `<img src="${image}" alt="${title}">` : '<div class="product-detail__placeholder">Richemonte</div>'}</div>
+          <div class="product-detail__media">${image ? `<img src="${image}" alt="${title}" loading="lazy" decoding="async">` : '<div class="product-detail__placeholder">Richemonte</div>'}</div>
           <div class="product-detail__body">
             <p class="product-detail__eyebrow">${product.collection || product.category || 'Collection'}</p>
             <h1 class="product-detail__title">${title}</h1>

@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bestellstatus – Richemont Monaco</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Great+Vibes&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/responsive.css">
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: 'Inter', sans-serif;
+      background: #000;
+      color: #fff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+    }
+
+    a {
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .page-shell {
+      width: min(760px, calc(100% - 32px));
+      margin: 0 auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .page-content {
+      position: relative;
+      width: 100%;
+      max-width: 680px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      padding: 72px 24px 24px;
+      flex: 1;
+    }
+
+    .logo-container {
+      position: relative;
+      text-align: center;
+      width: 100%;
+    }
+
+    .logo {
+      font-family: 'Great Vibes', cursive;
+      font-size: 28px;
+      color: #fff;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .input-panel {
+      width: 100%;
+      max-width: 620px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .input-panel input {
+      width: 100%;
+      padding: 14px 12px;
+      border: none;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      background: transparent;
+      color: #fff;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .input-panel input::placeholder {
+      color: rgba(255,255,255,0.45);
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 44px;
+      padding: 0 20px;
+      border-radius: 0;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: all 0.25s ease;
+      cursor: pointer;
+      border: 1px solid #fff;
+      background: transparent;
+      color: #fff;
+    }
+
+    .button:hover {
+      background: #fff;
+      color: #000;
+    }
+
+    .overlay,
+    .info-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+      padding: 20px;
+    }
+
+    .loader-shell,
+    .info-card {
+      width: min(560px, 100%);
+      padding: 28px 24px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 0;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      text-align: center;
+      color: #fff;
+    }
+
+    .spinner {
+      width: 56px;
+      height: 56px;
+      border: 4px solid rgba(255,255,255,0.12);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 18px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .info-title {
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      margin-bottom: 14px;
+      color: #fff;
+    }
+
+    .info-text {
+      font-size: 1rem;
+      line-height: 1.8;
+      color: #ddd;
+      min-height: 60px;
+      margin-bottom: 20px;
+    }
+
+    .error-message {
+      color: #ff7a7a;
+      text-align: center;
+      min-height: 22px;
+    }
+
+    footer {
+      background: #000;
+      padding: 80px 40px 40px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      text-align: center;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 40px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 30px;
+      justify-content: center;
+      margin-bottom: 60px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: #666;
+      text-decoration: none;
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    .footer-links a:hover {
+      color: #fff;
+    }
+
+    .footer-bottom {
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: #333;
+      text-transform: uppercase;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 20px;
+      border-radius: 0;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: all 0.25s ease;
+      cursor: pointer;
+      border: 1px solid #fff;
+      background: transparent;
+      color: #fff;
+    }
+
+    .button:hover {
+      background: #fff;
+      color: #000;
+    }
+
+    .invoice-preview-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 3500;
+      background: rgba(0, 0, 0, 0.85);
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .invoice-preview-card {
+      width: min(1100px, 100%);
+      max-height: min(92vh, 900px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #07111f;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.4);
+    }
+
+    .invoice-preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 22px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .invoice-preview-title {
+      color: #f8fafc;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    #invoicePreviewFrame {
+      width: 100%;
+      border: none;
+      flex: 1;
+      min-height: 600px;
+      background: #ffffff;
+    }
+
+    .invoice-preview-info {
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 0.9rem;
+      padding: 12px 22px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .invoice-preview-info span {
+      display: inline-block;
+      margin-right: 1rem;
+      color: #ddd;
+    }
+
+    .order-card {
+      display: grid;
+      gap: 18px;
+      margin-top: 14px;
+    }
+
+    .order-card span,
+    .order-card li {
+      display: block;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .order-card span strong,
+    .order-card li strong {
+      display: block;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .order-items {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    .order-items li {
+      display: grid;
+      gap: 6px;
+    }
+
+    .empty-state {
+      color: #aaa;
+      text-align: center;
+      padding: 80px 20px;
+      font-size: 0.95rem;
+      line-height: 1.8;
+    }
+
+    .order-status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 20px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .logo-container {
+      position: fixed;
+      top: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2100;
+      text-align: center;
+    }
+    .logo {
+      font-family: 'Great Vibes', cursive;
+      font-size: 28px;
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .status-success { background: rgba(34, 197, 94, 0.14); border-color: rgba(34, 197, 94, 0.3); }
+    .status-processing { background: rgba(59, 130, 246, 0.14); border-color: rgba(59, 130, 246, 0.3); }
+    .status-pending { background: rgba(249, 115, 22, 0.14); border-color: rgba(249, 115, 22, 0.3); }
+    .status-cancelled { background: rgba(239, 68, 68, 0.14); border-color: rgba(239, 68, 68, 0.3); }
+
+    .error-message {
+      color: #ff7a7a;
+      margin-top: 16px;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .status-panel {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 14px;
+      }
+
+      .site-header,
+      .panel {
+        padding: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <div class="page-content">
+      <div class="logo-container"><a class="logo" href="index.html">Richemont Monaco</a></div>
+      <div class="input-panel">
+        <input id="orderIdInput" type="text" placeholder="Sendungsnummer eingeben" autocomplete="off" />
+        <button id="statusButton" class="button">Anzeigen</button>
+        <div id="statusMessage" class="error-message" role="alert"></div>
+      </div>
+
+      <div id="orderResult" class="order-card" style="display:none; width:100%; max-width:620px; text-align:center;">
+        <div id="orderSummary" style="background:transparent; border:none; padding:0;">
+          <div id="orderTitle" style="font-weight:700; font-size:18px; letter-spacing:0.02em; margin-bottom:8px;"></div>
+        </div>
+        <div id="progressWrap" style="width:100%;">
+          <div style="background:rgba(255,255,255,0.06); height:12px; border-radius:8px; overflow:hidden;">
+            <div id="progressBar" style="height:12px; width:0%; background:#3b82f6; transition:width 600ms ease;"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:12px; color:#ddd;">
+            <div id="progressText">Status: -</div>
+            <div id="progressPercent">0%</div>
+          </div>
+        </div>
+        <span id="trackingLine" style="display:block; margin-top:8px;">Sendungsnummer: <strong id="trackingNumber">-</strong></span>
+        <div style="display:flex; flex-wrap:wrap; gap:12px; margin-top:12px; justify-content:center;">
+          <button id="previewInvoice" type="button" class="button" style="width:auto; display:none;">RECHNUNG ANSEHEN</button>
+          <button id="downloadInvoice" type="button" class="button" style="width:auto; display:none;">RECHNUNG HERUNTERLADEN</button>
+        </div>
+      </div>
+
+      <div id="invoicePreviewOverlay" class="invoice-preview-overlay">
+        <div class="invoice-preview-card">
+          <div class="invoice-preview-header">
+            <div>
+              <div class="invoice-preview-title">Rechnungsvorschau</div>
+            </div>
+            <button id="closePreview" class="button" style="width:auto;">Schließen</button>
+          </div>
+          <div class="invoice-preview-info">
+            <span>Vorschau der herunterladbaren Rechnung</span>
+            <span>Für Käufer und Admins sichtbar</span>
+          </div>
+          <iframe id="invoicePreviewFrame" title="Rechnungsvorschau"></iframe>
+        </div>
+      </div>
+
+      <div id="loadingOverlay" class="overlay">
+        <div class="loader-shell">
+          <div class="spinner"></div>
+          <div class="info-title">Lade Status</div>
+          <div class="info-text">Bitte warten Sie einen Moment…</div>
+        </div>
+      </div>
+
+      <div id="infoOverlay" class="info-overlay">
+        <div class="info-card">
+          <div class="info-title">Sendungsstatus</div>
+          <div id="infoText" class="info-text">Hier erscheinen die Informationen zur Sendung.</div>
+          <button id="closeInfo" class="button">Schließen</button>
+        </div>
+      </div>
+    </div>
+    <footer>
+      <div class="footer-content">
+        <div class="footer-links">
+          <a href="index.html">Home</a>
+          <a href="collections.html">Collections</a>
+          <a href="showroom.html">Showroom</a>
+          <a href="contact.html">Contact</a>
+          <a href="#">Instagram</a>
+          <a href="impressum.html">Impressum</a>
+        </div>
+        <div class="footer-bottom">&copy; 2026 Richemont Monaco</div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const orderIdInput = document.getElementById('orderIdInput');
+    const statusButton = document.getElementById('statusButton');
+    const statusMessage = document.getElementById('statusMessage');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const infoOverlay = document.getElementById('infoOverlay');
+    const infoText = document.getElementById('infoText');
+    const closeInfo = document.getElementById('closeInfo');
+    const previewInvoiceBtn = document.getElementById('previewInvoice');
+    const downloadInvoiceBtn = document.getElementById('downloadInvoice');
+    const invoicePreviewOverlay = document.getElementById('invoicePreviewOverlay');
+    const invoicePreviewFrame = document.getElementById('invoicePreviewFrame');
+    const closePreview = document.getElementById('closePreview');
+    const orderResult = document.getElementById('orderResult');
+
+    let currentOrderId = null;
+    let previewBlobUrl = '';
+
+    function showLoader() {
+      statusMessage.textContent = '';
+      loadingOverlay.style.display = 'flex';
+    }
+
+    function hideLoader() {
+      loadingOverlay.style.display = 'none';
+    }
+
+    function showInvoicePreview(blobUrl) {
+      invoicePreviewFrame.src = blobUrl;
+      invoicePreviewOverlay.style.display = 'flex';
+    }
+
+    // Auto-refresh preview when invoice settings change in another tab
+    window.addEventListener('storage', async (e) => {
+      if (e.key === 'invoiceUpdatedAt') {
+        try {
+          if (invoicePreviewOverlay.style.display === 'flex' && currentOrderId) {
+            // re-fetch latest PDF for the same order
+            const blob = await fetchInvoiceBlob(currentOrderId);
+            if (previewBlobUrl) window.URL.revokeObjectURL(previewBlobUrl);
+            previewBlobUrl = window.URL.createObjectURL(blob);
+            invoicePreviewFrame.src = previewBlobUrl;
+          }
+        } catch (err) {
+          console.warn('Failed to refresh invoice preview:', err);
+        }
+      }
+    });
+
+    function closeInvoicePreview() {
+      invoicePreviewOverlay.style.display = 'none';
+      invoicePreviewFrame.src = 'about:blank';
+      if (previewBlobUrl) {
+        window.URL.revokeObjectURL(previewBlobUrl);
+        previewBlobUrl = '';
+      }
+      orderIdInput.focus();
+    }
+
+    async function fetchInvoiceBlob(orderId) {
+      const response = await fetch(`/api/orders/${encodeURIComponent(orderId)}/invoice`, { method: 'GET' });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Rechnung konnte nicht geladen werden.');
+      }
+      return await response.blob();
+    }
+
+    async function fetchOrder(orderId) {
+      statusMessage.style.color = '#fff';
+      statusMessage.textContent = '';
+      orderResult.style.display = 'none';
+      previewInvoiceBtn.style.display = 'none';
+      downloadInvoiceBtn.style.display = 'none';
+      previewInvoiceBtn.disabled = true;
+      downloadInvoiceBtn.disabled = true;
+      statusButton.disabled = true;
+
+      if (!orderId) {
+        statusMessage.textContent = 'Bitte geben Sie eine Bestellnummer oder Sendungsnummer ein.';
+        statusButton.disabled = false;
+        return;
+      }
+
+      showLoader();
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+
+      try {
+        const response = await fetch(`/api/order-status?orderId=${encodeURIComponent(orderId)}`);
+        hideLoader();
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          statusMessage.style.color = '#ff7a7a';
+          statusMessage.textContent = errorText || 'Sendung nicht gefunden. Bitte prüfen Sie die Nummer.';
+          statusButton.disabled = false;
+          return;
+        }
+
+        const data = await response.json();
+        const order = data.order;
+        currentOrderId = order.id;
+
+        const orderResult = document.getElementById('orderResult');
+        const orderTitle = document.getElementById('orderTitle');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const progressPercent = document.getElementById('progressPercent');
+        const trackingNumberEl = document.getElementById('trackingNumber');
+
+        orderResult.style.display = 'block';
+        previewInvoiceBtn.style.display = 'inline-flex';
+        downloadInvoiceBtn.style.display = 'inline-flex';
+        previewInvoiceBtn.disabled = false;
+        downloadInvoiceBtn.disabled = false;
+        statusButton.disabled = false;
+
+        orderTitle.textContent = `Bestellung ${order.id} – €${Number(order.total || 0).toFixed(2)}`;
+
+        const status = (order.status || '').toLowerCase();
+        let pct = 40;
+        if (status === 'versendet' || status === 'delivered' || status === 'shipped') pct = 100;
+        else if (status === 'processing' || status === 'in bearbeitung' || status === 'bezahlt') pct = 60;
+        else if (status === 'pending' || status === 'neu' || status === 'offen') pct = 20;
+
+        progressBar.style.width = pct + '%';
+        progressText.textContent = `Status: ${order.status || '-'}`;
+        progressPercent.textContent = pct + '%';
+        trackingNumberEl.textContent = order.trackingNumber || '-';
+
+        previewInvoiceBtn.onclick = async () => {
+          previewInvoiceBtn.disabled = true;
+          previewInvoiceBtn.textContent = 'Lädt Vorschau…';
+          statusMessage.textContent = '';
+          try {
+            const blob = await fetchInvoiceBlob(order.id);
+            if (previewBlobUrl) {
+              window.URL.revokeObjectURL(previewBlobUrl);
+            }
+            previewBlobUrl = window.URL.createObjectURL(blob);
+            showInvoicePreview(previewBlobUrl);
+            previewInvoiceBtn.textContent = 'RECHNUNG ANSEHEN';
+          } catch (err) {
+            console.error(err);
+            statusMessage.style.color = '#ff7a7a';
+            statusMessage.textContent = 'Rechnungsvorschau konnte nicht geladen werden.';
+            previewInvoiceBtn.textContent = 'RECHNUNG ANSEHEN';
+          }
+          previewInvoiceBtn.disabled = false;
+        };
+
+        downloadInvoiceBtn.onclick = async () => {
+          downloadInvoiceBtn.disabled = true;
+          downloadInvoiceBtn.textContent = 'Lädt…';
+          statusMessage.textContent = '';
+          try {
+            const blob = await fetchInvoiceBlob(order.id);
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `rechnung-${order.id}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+            downloadInvoiceBtn.textContent = 'HERUNTERGELADEN';
+          } catch (err) {
+            console.error(err);
+            statusMessage.style.color = '#ff7a7a';
+            statusMessage.textContent = 'Rechnung konnte nicht heruntergeladen werden.';
+            downloadInvoiceBtn.textContent = 'RECHNUNG HERUNTERLADEN';
+          }
+          downloadInvoiceBtn.disabled = false;
+        };
+      } catch (error) {
+        console.error(error);
+        hideLoader();
+        statusMessage.style.color = '#ff7a7a';
+        statusMessage.textContent = 'Fehler beim Abrufen der Sendung. Bitte später erneut versuchen.';
+        statusButton.disabled = false;
+      }
+    }
+
+    statusButton.addEventListener('click', () => fetchOrder(orderIdInput.value.trim()));
+
+    closeInfo.addEventListener('click', () => {
+      infoOverlay.style.display = 'none';
+      orderIdInput.focus();
+    });
+
+    closePreview.addEventListener('click', closeInvoicePreview);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        fetchOrder(orderIdInput.value.trim());
+      }
+      if (e.key === 'Escape' && invoicePreviewOverlay.style.display === 'flex') {
+        closeInvoicePreview();
+      }
+    });
+  </script>
+</body>
+</html>

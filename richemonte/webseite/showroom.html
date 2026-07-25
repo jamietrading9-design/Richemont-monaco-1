@@ -3,10 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <title>Showroom – Richemont</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Great+Vibes&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/responsive.css">
 <script src="products-data.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -26,8 +24,8 @@ nav {
     padding: 30px 40px;
     background: transparent;
     pointer-events: none;
-    display: flex;
-    justify-content: space-between;
+    display: flex;    justify-content: space-between;
+
     align-items: center;
 }
 
@@ -108,6 +106,7 @@ nav {
     width: 300px;
     height: 100vh;
     padding-top: 120px;
+    padding-bottom: 40px;
     background: #080808;
     border-right: 1px solid rgba(255,255,255,0.05);
     transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -255,7 +254,6 @@ nav {
 
 .info-row {
     display: flex;
-    justify-content: space-between;
     margin-bottom: 15px;
     font-size: 11px;
     letter-spacing: 1px;
@@ -409,7 +407,7 @@ footer {
 <body>
 
 <nav>
-    <a href="#" onclick="toggleMenu(); return false;" class="menu-toggle">RM</a>
+    <button type="button" onclick="toggleMenu()" class="menu-toggle">RM</button>
     <a href="cart.html" class="cart-icon">
         <span id="cartCount" class="cart-count" style="display: none;">0</span>
     </a>
@@ -420,11 +418,11 @@ footer {
 </div>
 
 <div class="side-menu" id="sideMenu">
-    <a href="index.html">Home</a>
-    <a href="collections.html">Collections</a>
-    <a href="showroom.html">Showroom</a>
-    <a href="contact.html">Contact</a>
-    <a href="cart.html" class="menu-cart-icon">Warenkorb</a>
+        <a href="index.html">Home</a>
+        <a href="collections.html">Collections</a>
+        <a href="showroom.html">Showroom</a>
+        <a href="contact.html">Contact</a>
+        <a href="cart.html" class="menu-cart-icon">Warenkorb</a>
 </div>
 <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
@@ -435,11 +433,7 @@ footer {
     </header>
 
     <div class="filter-container">
-        <button class="filter-btn active" onclick="filterCategory('Alle', this)">Alle</button>
-        <button class="filter-btn" onclick="filterCategory('Hosen', this)">Hosen</button>
-        <button class="filter-btn" onclick="filterCategory('Jacken', this)">Jacken</button>
-        <button class="filter-btn" onclick="filterCategory('T-Shirts', this)">T-Shirts</button>
-        <button class="filter-btn" onclick="filterCategory('Hemden', this)">Hemden</button>
+        <button type="button" class="filter-btn active" onclick="filterCategory('Alle', this)">Alle</button>
     </div>
 
     <section id="showroomGrid">
@@ -495,7 +489,6 @@ function addToCart(product) {
     cart.push(product);
     localStorage.setItem('richemont_cart', JSON.stringify(cart));
     updateCartCount();
-    alert(`"${product.title}" wurde in den Warenkorb gelegt!`);
 }
 
 let allProducts = typeof RICHEMONTE_PRODUCTS !== 'undefined' ? RICHEMONTE_PRODUCTS : [];
@@ -509,7 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadShowroom() {
     const grid = document.getElementById('showroomGrid');
     
-    // Render initially from products-data.js fallback
+    renderCategoryFilters(allProducts);
     renderProducts(grid, getFilteredProducts());
     
     const local = localStorage.getItem('richemont_products.json');
@@ -517,6 +510,7 @@ async function loadShowroom() {
         try {
             const data = JSON.parse(local);
             allProducts = data.products || RICHEMONTE_PRODUCTS;
+            renderCategoryFilters(allProducts);
             renderProducts(grid, getFilteredProducts());
         } catch(e) {
             console.warn(e);
@@ -529,6 +523,7 @@ async function loadShowroom() {
             const data = await res.json();
             allProducts = data.products || RICHEMONTE_PRODUCTS;
             localStorage.setItem('richemont_products.json', JSON.stringify(data));
+            renderCategoryFilters(allProducts);
             renderProducts(grid, getFilteredProducts());
         }
     } catch (err) {
@@ -536,19 +531,41 @@ async function loadShowroom() {
     }
 }
 
+function normalizeCategory(value) {
+    return String(value || '').trim().toLowerCase();
+}
+
 function getFilteredProducts() {
     if (currentCategory === 'Alle') {
         return allProducts;
     }
-    return allProducts.filter(p => p.category === currentCategory);
+    return allProducts.filter((p) => normalizeCategory(p.category) === normalizeCategory(currentCategory));
+}
+
+function renderCategoryFilters(products) {
+    const container = document.querySelector('.filter-container');
+    if (!container || !Array.isArray(products)) return;
+
+    const categories = ['Alle', ...new Set(products
+        .filter((p) => p && p.category)
+        .map((p) => String(p.category).trim())
+    )];
+
+    container.innerHTML = categories.map((category) => {
+        const activeClass = category === currentCategory ? ' active' : '';
+        return `<button type="button" class="filter-btn${activeClass}" data-category="${category}">${category}</button>`;
+    }).join('');
+
+    container.querySelectorAll('.filter-btn').forEach((btn) => {
+        btn.addEventListener('click', () => filterCategory(btn.dataset.category, btn));
+    });
 }
 
 function filterCategory(category, btnElement) {
     currentCategory = category;
     
-    // Update active button state
     const buttons = document.querySelectorAll('.filter-btn');
-    buttons.forEach(btn => btn.classList.remove('active'));
+    buttons.forEach((btn) => btn.classList.remove('active'));
     if (btnElement) {
         btnElement.classList.add('active');
     }
@@ -557,9 +574,33 @@ function filterCategory(category, btnElement) {
     renderProducts(grid, getFilteredProducts());
 }
 
+function bindShowroomActions(container) {
+    if (!container) return;
+
+    container.querySelectorAll('.info-btn').forEach((btn) => {
+        const drawerId = btn.dataset.drawerId;
+        btn.addEventListener('click', () => {
+            const drawer = drawerId ? document.getElementById(drawerId) : null;
+            if (!drawer) return;
+            drawer.classList.toggle('open');
+            btn.innerText = drawer.classList.contains('open') ? 'Details schließen' : 'Weitere Details';
+        });
+    });
+
+    container.querySelectorAll('.buy-btn').forEach((btn) => {
+        const index = Number(btn.dataset.productIndex);
+        btn.addEventListener('click', () => {
+            const product = Number.isFinite(index) && allProducts[index];
+            if (product) {
+                addToCart(product);
+            }
+        });
+    });
+}
+
 function renderProducts(container, products) {
     if (!container) return;
-    if (products.length === 0) {
+    if (!products || products.length === 0) {
         container.innerHTML = '<div style="text-align:center; padding:100px 0; color:#666; font-size:12px; letter-spacing:2px; text-transform:uppercase;">Aktuell sind keine Stücke im Showroom verfügbar.</div>';
         return;
     }
@@ -574,14 +615,13 @@ function renderProducts(container, products) {
             : `${Number(product.price).toFixed(2)} €`;
             
         const sizesHtml = Array.isArray(product.sizes) && product.sizes.length
-            ? product.sizes.map(size => `<div class="size-tag">${size}</div>`).join('')
+            ? product.sizes.map((size) => `<div class="size-tag">${size}</div>`).join('')
             : '<div class="size-tag">Einheitsgröße</div>';
             
         const saleBadge = isDiscounted 
-            ? `<div style="position: absolute; top: 20px; left: 20px; background: #d7b98a; color: #000; padding: 6px 12px; font-size: 9px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; z-index: 100;">SALE</div>`
+            ? `<div style="position: absolute; top: 20px; left: 20px; background: #fff; color: #000; padding: 6px 12px; font-size: 9px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; z-index: 100; border: 1px solid rgba(0,0,0,0.12);">SALE</div>`
             : '';
 
-        const productJson = JSON.stringify(product).replace(/'/g, '&apos;').replace(/"/g, '&quot;');
         const article = document.createElement('article');
         article.className = 'showroom-item';
         article.innerHTML = `
@@ -591,12 +631,12 @@ function renderProducts(container, products) {
             </div>
             <div class="item-details">
                 <span class="category">${product.number || String(idx + 1).padStart(2, '0')}</span>
-                <h2>${product.title}</h2>
+                <h2>${product.title || 'Richemont Produkt'}</h2>
                 <p class="item-description">
-                    ${product.description || 'Ein exklusives Designerhemd aus der Richemont Monaco Kollektion.'}
+                    ${product.description || 'Ein exklusives Designerstück aus der Richemont Monaco Kollektion.'}
                 </p>
 
-                <div class="info-btn" onclick="toggleInfo('info-${idx}')">Weitere Details</div>
+                <button type="button" class="info-btn" data-drawer-id="info-${idx}">Weitere Details</button>
 
                 <div class="info-drawer" id="info-${idx}">
                     <div class="info-row">
@@ -613,15 +653,17 @@ function renderProducts(container, products) {
                         <span class="label">Preis</span>
                         <span class="value">${formattedPrice}</span>
                     </div>
-                    <div style="display: flex; gap: 20px; margin-top: 30px;">
-                        <button class="buy-btn" onclick="addToCart(${productJson})" style="background: transparent; border: 1px solid #fff; cursor: pointer;">In Einkaufswagen</button>
-                        <button class="buy-btn" onclick="addToCart(${productJson})" style="background: transparent; border: 1px solid #fff; cursor: pointer;">Jetzt kaufen</button>
+                    <div style="display: flex; gap: 20px; margin-top: 30px; flex-wrap: wrap;">
+                        <button type="button" class="buy-btn" data-product-index="${idx}" style="background: transparent; border: 1px solid #fff; cursor: pointer;">In Einkaufswagen</button>
+                        <button type="button" class="buy-btn" data-product-index="${idx}" style="background: transparent; border: 1px solid #fff; cursor: pointer;">Jetzt kaufen</button>
                     </div>
                 </div>
             </div>
         `;
         container.appendChild(article);
     });
+
+    bindShowroomActions(container);
 }
 </script>
 

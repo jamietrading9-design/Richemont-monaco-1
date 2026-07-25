@@ -3,10 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <title>Richemont Monaco</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Great+Vibes&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/responsive.css">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -25,8 +23,8 @@ nav {
     padding: 30px 40px;
     background: transparent;
     pointer-events: none;
-    display: flex;
-    justify-content: space-between;
+    display: flex;    justify-content: space-between;
+
     align-items: center;
 }
 
@@ -110,7 +108,7 @@ nav {
     gap: 24px;
     width: min(100%, 900px);
     padding: 0 24px;
-    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: top 0.35s ease, transform 0.35s ease, padding 0.35s ease, gap 0.35s ease, opacity 0.3s ease;
 }
 
 .logo {
@@ -118,7 +116,7 @@ nav {
     font-size: clamp(3.5rem, 7vw, 6.5rem);
     color: #fff;
     text-decoration: none;
-    transition: font-size 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: font-size 0.35s ease, opacity 0.3s ease;
     display: inline-block;
     line-height: 1;
 }
@@ -153,26 +151,27 @@ nav {
 
 .logo-container.is-sticky {
     position: fixed;
-    top: 30px;
+    top: 24px;
     left: 50%;
     transform: translateX(-50%);
-    width: min(100%, 920px);
-    padding: 14px 20px;
+    width: min(100%, 840px);
+    padding: 12px 20px;
     background: transparent;
     box-shadow: none;
     border-bottom: none;
     z-index: 2100;
-    gap: 0;
+    gap: 8px;
 }
 
 .logo-container.is-sticky .logo {
-    font-size: 28px;
+    font-size: clamp(1.8rem, 3.2vw, 2.4rem);
 }
 
 .logo-container.is-sticky .hero-cta {
     opacity: 0;
+    visibility: hidden;
     pointer-events: none;
-    transform: translateY(-10px);
+    transform: translateY(-8px);
 }
 
 .side-menu {
@@ -380,10 +379,10 @@ footer {
 
 <main>
     <section class="hero" id="hero">
-        <img id="heroBackground" decoding="async" src="Bildschirmfoto 2026-05-04 um 14.08.18.png" alt="Hero Background">
+        <img id="heroBackground" loading="eager" fetchpriority="high" decoding="async" src="Bildschirmfoto 2026-05-04 um 14.08.18.png" alt="Hero Background">
         <div class="logo-container" id="mainLogo">
             <a href="index.html" class="logo" id="siteTitleText">Richemont Monaco</a>
-            <a href="collections.html" class="hero-cta">Zum Showroom</a>
+            <a href="showroom.html" class="hero-cta">Zum Showroom</a>
         </div>
     </section>
 
@@ -472,9 +471,11 @@ loadSiteSettings();
 
 const logo = document.getElementById('mainLogo');
 const hero = document.getElementById('hero');
+const SCROLL_THRESHOLD = 120;
 
 window.addEventListener('scroll', () => {
-    if (window.scrollY > 0) {
+    const shouldStick = window.scrollY > SCROLL_THRESHOLD;
+    if (shouldStick) {
         logo.classList.add('is-sticky');
     } else {
         logo.classList.remove('is-sticky');

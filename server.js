@@ -5,6 +5,8 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
+const PDFDocument = require('pdfkit');
+const AdmZip = require('adm-zip');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,6 +20,16 @@ app.get(['/admin', '/admin/', '/admin.html'], (req, res) => {
 app.get(['/dashboard', '/dashboard.html'], (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.sendFile(path.join(__dirname, 'richemonte/webseite/dashboard.html'));
+});
+
+app.get(['/buchhaltung', '/buchhaltung/', '/buchhaltung/login.html'], (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  return res.redirect('/admin.html');
+});
+
+app.get(['/buchhaltung/dashboard', '/buchhaltung/dashboard.html'], (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.sendFile(path.join(__dirname, 'richemonte/webseite/buchhaltung/dashboard.html'));
 });
 
 // Middleware
@@ -62,6 +74,11 @@ app.use((req, res, next) => {
     '/admin.html',
     '/dashboard',
     '/dashboard.html',
+    '/buchhaltung',
+    '/buchhaltung/',
+    '/buchhaltung/login.html',
+    '/buchhaltung/dashboard',
+    '/buchhaltung/dashboard.html',
     '/api/auth/login',
     '/api/auth/me',
     '/api/auth/change-password',
@@ -77,6 +94,19 @@ app.use((req, res, next) => {
     return res.sendFile(path.join(__dirname, 'richemonte/webseite/wartung.html'));
   }
   return next();
+});
+
+app.disable('x-powered-by');
+
+app.use((req, res, next) => {
+  const assetExtensions = ['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.webp', '.json', '.map'];
+  const ext = path.extname(req.path).toLowerCase();
+  if (req.method === 'GET' && assetExtensions.includes(ext)) {
+    res.set('Cache-Control', 'public, max-age=31536000, immutable');
+  } else if (req.method === 'GET' && (req.path === '/' || req.path.endsWith('.html'))) {
+    res.set('Cache-Control', 'no-cache');
+  }
+  next();
 });
 
 app.use(express.static(path.join(__dirname, 'richemonte/webseite')));
@@ -135,6 +165,8 @@ const settingsFile = path.join(dataDir, 'settings.json');
 const usersFile = path.join(dataDir, 'users.json');
 const categoriesFile = path.join(dataDir, 'categories.json');
 const discountsFile = path.join(dataDir, 'discounts.json');
+const ordersFile = path.join(dataDir, 'orders.json');
+const expensesFile = path.join(dataDir, 'expenses.json');
 
 // Helper functions for file operations
 const readJsonFile = (filePath, defaultValue = []) => {
@@ -174,6 +206,12 @@ const initializeDataFiles = () => {
         homepageHeadline: 'Richemont Monaco',
         homepageDescription: 'Premium Herrenmode direkt aus Monaco.',
         announcementText: ''
+      },
+      invoiceDetails: {
+        companyName: 'Richemont Monaco',
+        bankName: 'Nord Ostsee Sparkasse',
+        iban: 'DE23456787654',
+        bic: 'NOLADE21ESG'
       }
     };
     fs.writeFileSync(settingsFile, JSON.stringify(defaultSettings, null, 2));
@@ -215,6 +253,10 @@ const initializeDataFiles = () => {
     const defaultDiscounts = [];
     fs.writeFileSync(discountsFile, JSON.stringify(defaultDiscounts, null, 2));
   }
+
+  if (!fs.existsSync(expensesFile)) {
+    fs.writeFileSync(expensesFile, JSON.stringify([], null, 2));
+  }
 };
 
 initializeDataFiles();
@@ -254,6 +296,9 @@ app.get('/api/images', authenticateToken, (req, res) => {
 // Helper functions
 const getUsers = () => JSON.parse(fs.readFileSync(usersFile, 'utf8'));
 const saveUsers = (users) => fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+
+const getExpenses = () => JSON.parse(fs.readFileSync(expensesFile, 'utf8'));
+const saveExpenses = (expenses) => fs.writeFileSync(expensesFile, JSON.stringify(expenses, null, 2));
 
 const findUserByUsername = (username) => {
   const users = getUsers();
@@ -351,7 +396,7 @@ app.post('/api/users', authenticateToken, (req, res) => {
       return res.status(403).json({ error: 'Admin only' });
     }
 
-    const { username, password, role } = req.body;
+    const { username, password, role, active } = req.body;
 
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password required' });
@@ -367,7 +412,7 @@ app.post('/api/users', authenticateToken, (req, res) => {
       username,
       password: bcrypt.hashSync(password, 10),
       role: role || 'user',
-      active: true,
+      active: active !== undefined ? !!active : true,
       createdAt: new Date().toISOString()
     };
 
@@ -379,7 +424,8 @@ app.post('/api/users', authenticateToken, (req, res) => {
       user: {
         id: newUser.id,
         username: newUser.username,
-        role: newUser.role
+        role: newUser.role,
+        active: newUser.active
       }
     });
   } catch (error) {
@@ -526,16 +572,461 @@ app.get('/api/settings', (req, res) => {
 // POST /api/settings - Update settings (Protected)
 app.post('/api/settings', authenticateToken, (req, res) => {
   try {
-    const { siteTitle, siteSubtitle } = req.body;
-    const settings = {
-      siteTitle: siteTitle || 'Richemont Monaco',
-      siteSubtitle: siteSubtitle || 'Designer Clothing'
+    const incoming = req.body || {};
+    const currentSettings = readJsonFile(settingsFile, {});
+    const merged = {
+      ...currentSettings,
+      ...incoming,
+      invoiceDetails: {
+        ...(currentSettings.invoiceDetails || {}),
+        ...(incoming.invoiceDetails || {})
+      }
     };
-    fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
+    fs.writeFileSync(settingsFile, JSON.stringify(merged, null, 2));
     res.json({ success: true, message: 'Settings updated successfully' });
   } catch (error) {
     console.error('Error updating settings:', error);
     res.status(500).json({ error: 'Failed to update settings' });
+  }
+});
+
+// GET /api/orders - Get all orders (Protected)
+app.get('/api/orders', authenticateToken, (req, res) => {
+  try {
+    const orders = readJsonFile(ordersFile, []);
+    res.json({ success: true, orders });
+  } catch (error) {
+    console.error('Error reading orders:', error);
+    res.status(500).json({ success: false, error: 'Failed to read orders' });
+  }
+});
+
+app.post('/api/orders/test', authenticateToken, (req, res) => {
+  try {
+    const orders = readJsonFile(ordersFile, []);
+    const timestamp = Date.now();
+    const orderId = `TEST-${timestamp}`;
+    const newOrder = {
+      id: orderId,
+      items: [
+        {
+          productId: 'test-product',
+          title: 'Testbestellung',
+          quantity: 1,
+          price: 49.99
+        }
+      ],
+      total: 49.99,
+      customer: {
+        name: 'Test Kunde',
+        email: 'test@richemont-monaco.com',
+        address: 'Musterstraße 1, 12345 Berlin'
+      },
+      notes: 'Testbestellung vom Admin',
+      paymentMethod: 'banktransfer',
+      iban: 'DE12 3456 7890 1234 5678 90',
+      status: 'offen',
+      trackingNumber: '',
+      createdAt: new Date().toISOString()
+    };
+    orders.push(newOrder);
+    writeJsonFile(ordersFile, orders);
+    res.json({ success: true, order: newOrder });
+  } catch (error) {
+    console.error('Error creating test order:', error);
+    res.status(500).json({ success: false, error: 'Failed to create test order' });
+  }
+});
+
+app.patch('/api/orders/:orderId', authenticateToken, (req, res) => {
+  try {
+    const orderId = String(req.params.orderId || '').trim();
+    if (!orderId) {
+      return res.status(400).json({ success: false, error: 'orderId is required' });
+    }
+
+    const orders = readJsonFile(ordersFile, []);
+    const orderIndex = orders.findIndex((o) => String(o.id) === orderId);
+    if (orderIndex === -1) {
+      return res.status(404).json({ success: false, error: 'Bestellung nicht gefunden' });
+    }
+
+    const updates = req.body || {};
+    const updatedOrder = {
+      ...orders[orderIndex],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+
+    orders[orderIndex] = updatedOrder;
+    writeJsonFile(ordersFile, orders);
+
+    res.json({ success: true, order: updatedOrder });
+  } catch (error) {
+    console.error('Error updating order:', error);
+    res.status(500).json({ success: false, error: 'Failed to update order' });
+  }
+});
+
+app.delete('/api/orders/:orderId', authenticateToken, (req, res) => {
+  try {
+    const orderId = String(req.params.orderId || '').trim();
+    if (!orderId) {
+      return res.status(400).json({ success: false, error: 'orderId is required' });
+    }
+
+    const orders = readJsonFile(ordersFile, []);
+    const filtered = orders.filter((o) => String(o.id) !== orderId);
+    if (filtered.length === orders.length) {
+      return res.status(404).json({ success: false, error: 'Bestellung nicht gefunden' });
+    }
+
+    writeJsonFile(ordersFile, filtered);
+    res.json({ success: true, message: 'Bestellung gelöscht' });
+  } catch (error) {
+    console.error('Error deleting order:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete order' });
+  }
+});
+
+app.delete('/api/orders', authenticateToken, (req, res) => {
+  try {
+    writeJsonFile(ordersFile, []);
+    res.json({ success: true, message: 'Alle Bestellungen wurden gelöscht' });
+  } catch (error) {
+    console.error('Error deleting all orders:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete orders' });
+  }
+});
+
+// Bookkeeping expenses API
+app.get('/api/expenses', authenticateToken, (req, res) => {
+  try {
+    const expenses = getExpenses();
+    res.json({ success: true, expenses });
+  } catch (error) {
+    console.error('Error reading expenses:', error);
+    res.status(500).json({ success: false, error: 'Failed to read expenses' });
+  }
+});
+
+app.post('/api/expenses', authenticateToken, (req, res) => {
+  try {
+    const { supplier, description, amount, date, taxRate, category } = req.body;
+    if (!supplier || !amount || !date) {
+      return res.status(400).json({ success: false, error: 'Supplier, amount and date are required' });
+    }
+    const expenses = getExpenses();
+    const expenseId = `EXP-${Date.now()}`;
+    const taxAmount = Number(amount) * (Number(taxRate || 0) / 100);
+    const newExpense = {
+      id: expenseId,
+      supplier,
+      description: description || '',
+      amount: Number(amount),
+      date,
+      taxRate: Number(taxRate || 0),
+      taxAmount,
+      category: category || 'Allgemein',
+      createdBy: req.user.username,
+      createdAt: new Date().toISOString()
+    };
+    expenses.push(newExpense);
+    saveExpenses(expenses);
+    res.json({ success: true, expense: newExpense });
+  } catch (error) {
+    console.error('Error creating expense:', error);
+    res.status(500).json({ success: false, error: 'Failed to create expense' });
+  }
+});
+
+app.patch('/api/expenses/:expenseId', authenticateToken, (req, res) => {
+  try {
+    const expenseId = String(req.params.expenseId || '').trim();
+    const expenses = getExpenses();
+    const index = expenses.findIndex(exp => exp.id === expenseId);
+    if (index === -1) {
+      return res.status(404).json({ success: false, error: 'Expense not found' });
+    }
+    const updates = req.body || {};
+    const updatedExpense = {
+      ...expenses[index],
+      ...updates,
+      taxAmount: Number(updates.amount || expenses[index].amount) * (Number(updates.taxRate !== undefined ? updates.taxRate : expenses[index].taxRate) / 100),
+      updatedBy: req.user.username,
+      updatedAt: new Date().toISOString()
+    };
+    expenses[index] = updatedExpense;
+    saveExpenses(expenses);
+    res.json({ success: true, expense: updatedExpense });
+  } catch (error) {
+    console.error('Error updating expense:', error);
+    res.status(500).json({ success: false, error: 'Failed to update expense' });
+  }
+});
+
+app.delete('/api/expenses/:expenseId', authenticateToken, (req, res) => {
+  try {
+    const expenseId = String(req.params.expenseId || '').trim();
+    const expenses = getExpenses();
+    const filtered = expenses.filter(exp => exp.id !== expenseId);
+    if (filtered.length === expenses.length) {
+      return res.status(404).json({ success: false, error: 'Expense not found' });
+    }
+    saveExpenses(filtered);
+    res.json({ success: true, message: 'Expense deleted' });
+  } catch (error) {
+    console.error('Error deleting expense:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete expense' });
+  }
+});
+
+app.get('/api/bookkeeping/summary', authenticateToken, (req, res) => {
+  try {
+    const orders = readJsonFile(ordersFile, []);
+    const expenses = getExpenses();
+    const revenue = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+    const expenseTotal = expenses.reduce((sum, exp) => sum + Number(exp.amount || 0), 0);
+    const vatRevenue = orders.reduce((sum, order) => {
+      const orderVat = (order.items || []).reduce((itemSum, item) => {
+        const price = Number(item.price || 0);
+        const qty = Number(item.quantity || 1);
+        return itemSum + (price * qty * 0.19);
+      }, 0);
+      return sum + orderVat;
+    }, 0);
+    const vatExpenses = expenses.reduce((sum, exp) => sum + Number(exp.taxAmount || 0), 0);
+    const netProfit = revenue - expenseTotal;
+    res.json({
+      success: true,
+      revenue,
+      expenseTotal,
+      netProfit,
+      vatRevenue,
+      vatExpenses,
+      openOrders: orders.filter(order => order.status !== 'paid').length,
+      expenseCount: expenses.length,
+      orderCount: orders.length
+    });
+  } catch (error) {
+    console.error('Error generating summary:', error);
+    res.status(500).json({ success: false, error: 'Failed to generate summary' });
+  }
+});
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return dateString || '';
+  return date.toLocaleDateString('de-DE');
+};
+
+app.get('/api/bookkeeping/export-datev', authenticateToken, (req, res) => {
+  try {
+    const orders = readJsonFile(ordersFile, []);
+    const expenses = getExpenses();
+    const datevData = {
+      orders,
+      expenses,
+      exportedAt: new Date().toISOString()
+    };
+    res.json({ success: true, datevData });
+  } catch (error) {
+    console.error('Error exporting DATEV:', error);
+    res.status(500).json({ success: false, error: 'Failed to export DATEV data' });
+  }
+});
+
+app.get('/api/bookkeeping/cashbook', authenticateToken, (req, res) => {
+  try {
+    const orders = readJsonFile(ordersFile, []);
+    const expenses = getExpenses();
+    const entries = [];
+    orders.forEach(order => {
+      entries.push({
+        type: 'Einnahme',
+        date: formatDate(order.createdAt),
+        partner: order.customer?.name || 'Kunde',
+        description: `Rechnung ${order.id}`,
+        amount: Number(order.total || 0),
+        tax: 0,
+        category: 'Umsatz'
+      });
+    });
+    expenses.forEach(expense => {
+      entries.push({
+        type: 'Ausgabe',
+        date: formatDate(expense.date),
+        partner: expense.supplier,
+        description: expense.description || 'Ausgabe',
+        amount: -Number(expense.amount || 0),
+        tax: Number(expense.taxAmount || 0),
+        category: expense.category || 'Allgemein',
+        createdBy: expense.createdBy || '–'
+      });
+    });
+    entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+    res.json({ success: true, entries });
+  } catch (error) {
+    console.error('Error reading cashbook entries:', error);
+    res.status(500).json({ success: false, error: 'Failed to read cashbook entries' });
+  }
+});
+
+app.get('/api/bookkeeping/export-cashbook', authenticateToken, (req, res) => {
+  try {
+    const orders = readJsonFile(ordersFile, []);
+    const expenses = getExpenses();
+    const entries = [];
+    orders.forEach(order => {
+      entries.push({
+        type: 'Einnahme',
+        date: formatDate(order.createdAt),
+        partner: order.customer?.name || 'Kunde',
+        description: `Rechnung ${order.id}`,
+        amount: Number(order.total || 0).toFixed(2),
+        tax: '0,00',
+        category: 'Umsatz'
+      });
+    });
+    expenses.forEach(expense => {
+      entries.push({
+        type: 'Ausgabe',
+        date: formatDate(expense.date),
+        partner: expense.supplier,
+        description: expense.description || 'Ausgabe',
+        amount: (-Number(expense.amount || 0)).toFixed(2),
+        tax: Number(expense.taxAmount || 0).toFixed(2),
+        category: expense.category || 'Allgemein',
+        createdBy: expense.createdBy || '–'
+      });
+    });
+    entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    const contentXml = `<?xml version="1.0" encoding="UTF-8"?>
+<office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" office:version="1.2">
+  <office:body>
+    <office:text>
+      <text:h text:style-name="Heading1">Kassenbuch</text:h>
+      <table:table table:name="Kassenbuch">
+        <table:table-row>
+          <table:table-cell><text:p>Typ</text:p></table:table-cell>
+          <table:table-cell><text:p>Datum</text:p></table:table-cell>
+          <table:table-cell><text:p>Partner</text:p></table:table-cell>
+          <table:table-cell><text:p>Beschreibung</text:p></table:table-cell>
+          <table:table-cell><text:p>Betrag</text:p></table:table-cell>
+          <table:table-cell><text:p>Steuer</text:p></table:table-cell>
+          <table:table-cell><text:p>Kategorie</text:p></table:table-cell>
+          <table:table-cell><text:p>Erfasst von</text:p></table:table-cell>
+        </table:table-row>
+        ${entries.map(entry => `
+        <table:table-row>
+          <table:table-cell><text:p>${entry.type}</text:p></table:table-cell>
+          <table:table-cell><text:p>${entry.date}</text:p></table:table-cell>
+          <table:table-cell><text:p>${entry.partner}</text:p></table:table-cell>
+          <table:table-cell><text:p>${entry.description}</text:p></table:table-cell>
+          <table:table-cell><text:p>${entry.amount.replace('.', ',')}</text:p></table:table-cell>
+          <table:table-cell><text:p>${entry.tax.replace('.', ',')}</text:p></table:table-cell>
+          <table:table-cell><text:p>${entry.category}</text:p></table:table-cell>
+          <table:table-cell><text:p>${entry.createdBy || '–'}</text:p></table:table-cell>
+        </table:table-row>`).join('')}
+      </table:table>
+    </office:text>
+  </office:body>
+</office:document-content>`;
+
+    const stylesXml = `<?xml version="1.0" encoding="UTF-8"?>
+<office:document-styles xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" office:version="1.2">
+  <office:styles>
+    <style:style style:name="Heading1" style:family="paragraph" style:parent-style-name="Heading" />
+  </office:styles>
+</office:document-styles>`;
+
+    const manifestXml = `<?xml version="1.0" encoding="UTF-8"?>
+<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0">
+  <manifest:file-entry manifest:full-path="/" manifest:media-type="application/vnd.oasis.opendocument.text"/>
+  <manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml"/>
+  <manifest:file-entry manifest:full-path="styles.xml" manifest:media-type="text/xml"/>
+</manifest:manifest>`;
+
+    const zip = new AdmZip();
+    zip.addFile('mimetype', Buffer.from('application/vnd.oasis.opendocument.text', 'utf8'));
+    zip.addFile('content.xml', Buffer.from(contentXml, 'utf8'));
+    zip.addFile('styles.xml', Buffer.from(stylesXml, 'utf8'));
+    zip.addFile('META-INF/manifest.xml', Buffer.from(manifestXml, 'utf8'));
+
+    const buffer = zip.toBuffer();
+    res.setHeader('Content-Type', 'application/vnd.oasis.opendocument.text');
+    res.setHeader('Content-Disposition', 'attachment; filename="kassenbuch.odt"');
+    res.send(buffer);
+  } catch (error) {
+    console.error('Error exporting cashbook ODF:', error);
+    res.status(500).json({ success: false, error: 'Failed to export cashbook ODF' });
+  }
+});
+
+// GET /api/orders/:orderId/invoice - Generate PDF invoice
+app.get('/api/orders/:orderId/invoice', (req, res) => {
+  try {
+    const orderId = String(req.params.orderId || '').trim();
+    if (!orderId) {
+      return res.status(400).json({ error: 'orderId is required' });
+    }
+
+    const orders = readJsonFile(ordersFile, []);
+    const order = orders.find(o => String(o.id) === orderId);
+    
+    if (!order) {
+      return res.status(404).json({ error: 'Bestellung nicht gefunden' });
+    }
+
+    const doc = new PDFDocument({ size: 'A4', margin: 40 });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="rechnung-${orderId}.pdf"`);
+    
+    doc.pipe(res);
+
+    // Company name - top center, large and bold
+    doc.fontSize(24).font('Helvetica-Bold').text('RICHEMONT MONACO', { align: 'center' });
+    doc.moveDown(0.8);
+    
+    // Horizontal line
+    doc.moveTo(40, doc.y).lineTo(doc.page.width - 40, doc.y).stroke();
+    doc.moveDown(0.5);
+    
+    // Customer section - title
+    doc.fontSize(12).font('Helvetica-Bold').text('Rechnung an:', { align: 'left' });
+    doc.moveDown(0.3);
+    
+    // Customer details
+    doc.fontSize(11).font('Helvetica');
+    doc.text(order.customer?.name || '-');
+    doc.text(order.customer?.email || '-');
+    doc.text(order.customer?.address || '-');
+    doc.moveDown(0.8);
+    
+    // Products section - title
+    doc.fontSize(12).font('Helvetica-Bold').text('Produkte:', { align: 'left' });
+    doc.moveDown(0.3);
+    
+    // Products list
+    doc.fontSize(11).font('Helvetica');
+    if (Array.isArray(order.items) && order.items.length > 0) {
+      order.items.forEach((item, index) => {
+        const qty = item.quantity || 1;
+        const price = Number(item.price || 0);
+        doc.text(`${index + 1}. ${item.title || '-'} (${qty}x € ${price.toFixed(2)})`);
+      });
+    }
+    doc.moveDown(1);
+    
+    // Total
+    doc.fontSize(12).font('Helvetica-Bold');
+    doc.text(`Gesamtpreis: € ${(order.total || 0).toFixed(2)}`);
+
+    doc.end();
+  } catch (error) {
+    console.error('Invoice generation error:', error);
+    res.status(500).json({ error: 'Failed to generate invoice' });
   }
 });
 
@@ -563,6 +1054,18 @@ app.get('/api/all', authenticateToken, (req, res) => {
         homepageHeadline: 'Richemont Monaco',
         homepageDescription: 'Premium Herrenmode direkt aus Monaco.',
         announcementText: ''
+      },
+      invoiceDetails: settings.invoiceDetails || {
+        companyName: 'Richemont Monaco',
+        address: 'bojuzm 1   24402 esgrus',
+        owner: 'Inhaber Alfred von Reichbeerg',
+        email: 'info@richemont-monaco.com',
+        phone: '+377 99 00 00 00',
+        bankName: 'Commerzbank',
+        iban: 'DE12 3456 7890 1234 5678 90',
+        bic: 'COBADEFFXXX',
+        website: 'www.richemont-monaco.com',
+        footerText: '© 2026 Richemont Monaco'
       }
     });
   } catch (error) {
@@ -650,7 +1153,7 @@ function createMaintenancePage(maintenance) {
 // POST /api/all - Save all data (Protected)
 app.post('/api/all', authenticateToken, (req, res) => {
   try {
-    let { products, categories, discounts, siteTitle, siteSubtitle, maintenance } = req.body;
+    let { products, categories, discounts, siteTitle, siteSubtitle, maintenance, invoiceDetails } = req.body;
 
     if (Array.isArray(products)) {
       generateProductPages(products);
@@ -678,6 +1181,18 @@ app.post('/api/all', authenticateToken, (req, res) => {
         homepageHeadline: req.body.siteContent?.homepageHeadline || '',
         homepageDescription: req.body.siteContent?.homepageDescription || '',
         announcementText: req.body.siteContent?.announcementText || ''
+      },
+      invoiceDetails: {
+        companyName: invoiceDetails?.companyName || 'Richemont Monaco',
+        address: invoiceDetails?.address || 'bojuzm 1   24402 esgrus',
+        owner: invoiceDetails?.owner || 'Inhaber Alfred von Reichbeerg',
+        email: invoiceDetails?.email || 'info@richemont-monaco.com',
+        phone: invoiceDetails?.phone || '+377 99 00 00 00',
+        bankName: invoiceDetails?.bankName || 'Commerzbank',
+        iban: invoiceDetails?.iban || 'DE12 3456 7890 1234 5678 90',
+        bic: invoiceDetails?.bic || 'COBADEFFXXX',
+        website: invoiceDetails?.website || 'www.richemont-monaco.com',
+        footerText: invoiceDetails?.footerText || '© 2026 Richemont Monaco'
       }
     };
     writeJsonFile(settingsFile, settings);

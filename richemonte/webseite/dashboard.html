@@ -6,6 +6,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Great+Vibes&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/responsive.css">
   <title>Dashboard - Richemont Monaco</title>
   <style>
     * {
@@ -123,19 +124,21 @@
 
     nav a {
       display: block;
-      padding: 14px 20px;
+      padding: 12px 20px;
       color: #888;
       text-decoration: none;
       font-size: 11px;
-      letter-spacing: 1.5px;
+      letter-spacing: 1px;
       text-transform: uppercase;
-      transition: all 0.3s ease;
+      transition: all 0.2s ease;
       border-left: 2px solid transparent;
       cursor: pointer;
+      line-height: 1.4;
     }
 
     nav a:hover {
       color: #fff;
+      background: #111;
     }
 
     nav a.active {
@@ -147,15 +150,15 @@
     main {
       margin-left: 220px;
       flex: 1;
-      padding: 40px;
+      padding: 24px;
       overflow-y: auto;
       height: calc(100vh - 60px);
     }
 
     .page-title {
-      font-size: 32px;
+      font-size: 18px;
       letter-spacing: 1px;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
       text-transform: uppercase;
     }
 
@@ -163,14 +166,14 @@
       color: #888;
       font-size: 12px;
       letter-spacing: 1px;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
     }
 
     .card {
       background: #0a0a0a;
       border: 1px solid #1a1a1a;
-      padding: 30px;
-      margin-bottom: 24px;
+      padding: 20px;
+      margin-bottom: 20px;
     }
 
     .card-title {
@@ -279,6 +282,13 @@
       gap: 12px;
       margin-top: 20px;
       flex-wrap: wrap;
+    }
+
+    .btn-group-inline {
+      display: inline-flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
     }
 
     table {
@@ -408,11 +418,20 @@
 
   <div class="container">
     <nav>
-      <a class="nav-item active" data-section="products">Produkte</a>
-      <a class="nav-item" data-section="images">Bilder</a>
-      <a class="nav-item" data-section="maintenance">Wartung</a>
-      <a class="nav-item" data-section="account">Account</a>
-      <a class="nav-item" data-section="categories">Kategorien</a>
+      <a class="nav-item active" href="#products" data-section="products">Produkte</a>
+      <a class="nav-item" href="#orders" data-section="orders">Bestellungen</a>
+      <a class="nav-item" href="#buch-summary" data-buch-section="buch-summary">Übersicht</a>
+      <a class="nav-item" href="#buch-orders" data-buch-section="buch-orders">Rechnungen</a>
+      <a class="nav-item" href="#buch-expenses" data-buch-section="buch-expenses">Ausgaben</a>
+      <a class="nav-item" href="#buch-cashbook" data-buch-section="buch-cashbook">Kassenbuch</a>
+      <a class="nav-item" href="#buch-users" data-buch-section="buch-users">Personal</a>
+      <a class="nav-item" href="#buch-settings" data-buch-section="buch-settings">Einstellungen</a>
+      <a class="nav-item" href="#buch-password" data-buch-section="buch-password">Passwort ändern</a>
+      <a class="nav-item" href="#images" data-section="images">Bilder</a>
+      <a class="nav-item" href="#maintenance" data-section="maintenance">Wartung</a>
+      <a class="nav-item" href="#users" data-section="users">Admin Benutzer</a>
+      <a class="nav-item" href="#account" data-section="account">Account</a>
+      <a class="nav-item" href="#categories" data-section="categories">Kategorien</a>
     </nav>
 
     <main>
@@ -502,6 +521,393 @@
       </section>
 
       <!-- CATEGORIES -->
+      <section id="orders" class="section-hidden">
+        <h1 class="page-title">Bestellungen</h1>
+        <p class="page-subtitle">Echtzeitübersicht aller eingegangenen Bestellungen</p>
+
+        <div class="card">
+          <div class="card-title"><span>Letzte Bestellungen</span></div>
+          <div style="margin-bottom: 18px; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+            <input id="orderSearchInput" class="field" type="text" placeholder="Bestellnummer oder Sendungsnummer suchen" style="flex:1; min-width:220px;" />
+            <button type="button" class="btn" onclick="renderOrdersTable()" style="white-space: nowrap;">Filtern</button>
+            <button type="button" class="btn" onclick="document.getElementById('orderSearchInput').value=''; renderOrdersTable()" style="border-color:#555; white-space: nowrap;">Zurücksetzen</button>
+            <button type="button" class="btn" onclick="confirmCreateTestOrder()" style="border-color:#0b74b0; white-space: nowrap;">Testbestellung</button>
+            <button type="button" class="btn" onclick="confirmDeleteAllOrders()" style="border-color:#b00; white-space: nowrap;">Alle löschen</button>
+          </div>
+          <div style="overflow-x: auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Bestell-Nr.</th>
+                  <th>Kunde</th>
+                  <th>E-Mail</th>
+                  <th>Betrag</th>
+                  <th>Status</th>
+                  <th>Tracking</th>
+                  <th>Aktionen</th>
+                  <th>Datum</th>
+                </tr>
+              </thead>
+              <tbody id="ordersTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="buch-summary" class="section-hidden">
+        <h1 class="page-title">Buchhaltung: Übersicht</h1>
+        <p class="page-subtitle">Finanzübersicht und aktuelle Metriken.</p>
+          <div class="card" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:18px;">
+            <div style="background:#090909; padding:22px; border:1px solid #1a1a1a;">
+              <div class="label">Umsatz</div>
+              <div id="buchhaltungRevenue" style="font-size:28px; margin-top:12px;">€ 0.00</div>
+            </div>
+            <div style="background:#090909; padding:22px; border:1px solid #1a1a1a;">
+              <div class="label">Ausgaben</div>
+              <div id="buchhaltungExpenses" style="font-size:28px; margin-top:12px;">€ 0.00</div>
+            </div>
+            <div style="background:#090909; padding:22px; border:1px solid #1a1a1a;">
+              <div class="label">Gewinn</div>
+              <div id="buchhaltungProfit" style="font-size:28px; margin-top:12px;">€ 0.00</div>
+            </div>
+            <div style="background:#090909; padding:22px; border:1px solid #1a1a1a;">
+              <div class="label">Offene Bestellungen</div>
+              <div id="buchhaltungOpenOrders" style="font-size:28px; margin-top:12px;">0</div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:22px;">
+            <div class="card-title"><span>Top Bestellungen</span></div>
+            <div style="overflow-x:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nr.</th>
+                    <th>Kunde</th>
+                    <th>Betrag</th>
+                    <th>Status</th>
+                    <th>Datum</th>
+                  </tr>
+                </thead>
+                <tbody id="buchhaltungOrdersTable"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:22px;">
+            <div class="card-title"><span>Neueste Ausgaben</span></div>
+            <div style="overflow-x:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Datum</th>
+                    <th>Lieferant</th>
+                    <th>Betrag</th>
+                    <th>Steuer</th>
+                    <th>Kategorie</th>
+                  </tr>
+                </thead>
+                <tbody id="buchhaltungExpensesTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <section id="buch-orders" class="section-hidden">
+        <h1 class="page-title">Rechnungen</h1>
+        <p class="page-subtitle">Alle eingegangenen Bestellungen.</p>
+        <div class="card">
+            <div class="card-title"><span>Rechnungen</span></div>
+            <div style="overflow-x:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Bestell-Nr.</th>
+                    <th>Kunde</th>
+                    <th>E-Mail</th>
+                    <th>Betrag</th>
+                    <th>Status</th>
+                    <th>Datum</th>
+                  </tr>
+                </thead>
+                <tbody id="buchOrdersTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <section id="buch-expenses" class="section-hidden">
+        <h1 class="page-title">Ausgaben</h1>
+        <p class="page-subtitle">Erfassen und verwalten Sie Betriebsausgaben.</p>
+        <div class="card">
+            <div class="card-title"><span>Ausgaben erfassen</span></div>
+            <form id="buchExpenseForm">
+              <div class="grid grid-2">
+                <div class="form-group">
+                  <label class="label">Lieferant</label>
+                  <input type="text" id="buchExpenseSupplier" class="field" required>
+                </div>
+                <div class="form-group">
+                  <label class="label">Betrag</label>
+                  <input type="number" id="buchExpenseAmount" class="field" min="0" step="0.01" required>
+                </div>
+              </div>
+              <div class="grid grid-2">
+                <div class="form-group">
+                  <label class="label">Datum</label>
+                  <input type="date" id="buchExpenseDate" class="field" required>
+                </div>
+                <div class="form-group">
+                  <label class="label">Steuersatz (%)</label>
+                  <input type="number" id="buchExpenseTaxRate" class="field" value="19" min="0" step="0.1">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="label">Beschreibung</label>
+                <input type="text" id="buchExpenseDescription" class="field">
+              </div>
+              <div class="form-group">
+                <label class="label">Kategorie</label>
+                <input type="text" id="buchExpenseCategory" class="field" value="Allgemein">
+              </div>
+              <div class="btn-group">
+                <button type="submit" class="btn">Ausgabe speichern</button>
+              </div>
+            </form>
+          </div>
+          <div class="card" style="margin-top:22px;">
+            <div class="card-title"><span>Alle Ausgaben</span></div>
+            <div style="overflow-x:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Datum</th>
+                    <th>Lieferant</th>
+                    <th>Beschreibung</th>
+                    <th>Betrag</th>
+                    <th>Steuer</th>
+                    <th>Kategorie</th>
+                  </tr>
+                </thead>
+                <tbody id="buchExpensesTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <section id="buch-cashbook" class="section-hidden">
+        <h1 class="page-title">Kassenbuch</h1>
+        <p class="page-subtitle">Übersicht aller Kasseneinträge.</p>
+        <div class="card">
+            <div class="card-title"><span>Kassenbuch</span></div>
+            <div class="summary-actions">
+              <button type="button" class="btn" id="buchLoadCashbook">Kassenbuch laden</button>
+              <button type="button" class="btn" id="buchExportCashbook">Kassenbuch exportieren</button>
+            </div>
+            <div style="overflow-x:auto; margin-top:18px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Typ</th>
+                    <th>Datum</th>
+                    <th>Partner</th>
+                    <th>Beschreibung</th>
+                    <th>Betrag</th>
+                    <th>Steuer</th>
+                    <th>Kategorie</th>
+                  </tr>
+                </thead>
+                <tbody id="buchCashbookTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <section id="buch-users" class="section-hidden">
+        <h1 class="page-title">Personal</h1>
+        <p class="page-subtitle">Verwalten Sie Buchhaltungs-Benutzer.</p>
+        <div class="card">
+            <div class="card-title"><span>Buchhaltungs-Benutzer</span></div>
+            <form id="buchUserForm">
+              <div class="grid grid-2">
+                <div class="form-group">
+                  <label class="label">Benutzername</label>
+                  <input type="text" id="buchNewUserName" class="field" required>
+                </div>
+                <div class="form-group">
+                  <label class="label">Passwort</label>
+                  <input type="password" id="buchNewUserPassword" class="field" required>
+                </div>
+              </div>
+              <div class="grid grid-2">
+                <div class="form-group">
+                  <label class="label">Rolle</label>
+                  <select id="buchNewUserRole" class="field">
+                    <option value="admin">Admin</option>
+                    <option value="user">User</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="label">Aktiv</label>
+                  <select id="buchNewUserActive" class="field">
+                    <option value="true">Ja</option>
+                    <option value="false">Nein</option>
+                  </select>
+                </div>
+              </div>
+              <div class="btn-group">
+                <button type="submit" class="btn">Benutzer hinzufügen</button>
+              </div>
+            </form>
+          </div>
+          <div class="card" style="margin-top:22px;">
+            <div class="card-title"><span>Bestehende Buchhaltungs-Benutzer</span></div>
+            <div style="overflow-x:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Benutzer</th>
+                    <th>Rolle</th>
+                    <th>Aktiv</th>
+                    <th>Aktion</th>
+                  </tr>
+                </thead>
+                <tbody id="buchUsersTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <section id="buch-settings" class="section-hidden">
+        <h1 class="page-title">Einstellungen</h1>
+        <p class="page-subtitle">Konfigurieren Sie Buchhaltungsparameter.</p>
+        <div class="card">
+            <div class="card-title"><span>Einstellungen</span></div>
+            <form id="buchSettingsForm">
+              <div class="form-group">
+                <label class="label">Firmenname</label>
+                <input type="text" id="buchAccountingCompany" class="field" placeholder="Richemont Monaco">
+              </div>
+              <div class="grid grid-2">
+                <div class="form-group">
+                  <label class="label">Bankname</label>
+                  <input type="text" id="buchAccountingBank" class="field" placeholder="Monaco Bank">
+                </div>
+                <div class="form-group">
+                  <label class="label">IBAN</label>
+                  <input type="text" id="buchAccountingIban" class="field" placeholder="DE00 0000 0000 0000 0000 00">
+                </div>
+              </div>
+              <div class="grid grid-2">
+                <div class="form-group">
+                  <label class="label">BIC</label>
+                  <input type="text" id="buchAccountingBic" class="field" placeholder="MOCBDEFFXXX">
+                </div>
+                <div class="form-group"></div>
+              </div>
+              <div class="btn-group">
+                <button type="submit" class="btn">Einstellungen speichern</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </section>
+
+      <section id="buch-password" class="section-hidden">
+        <h1 class="page-title">Passwort ändern</h1>
+        <p class="page-subtitle">Sicherheit für Ihr Buchhaltungs-Konto.</p>
+        <div class="card">
+            <div class="card-title"><span>Passwort ändern</span></div>
+            <form id="buchPasswordForm">
+              <div class="form-group">
+                <label class="label">Aktuelles Passwort</label>
+                <input type="password" id="buchCurrentPassword" class="field" required>
+              </div>
+              <div class="form-group">
+                <label class="label">Neues Passwort</label>
+                <input type="password" id="buchNewPassword" class="field" required>
+              </div>
+              <div class="form-group">
+                <label class="label">Neues Passwort wiederholen</label>
+                <input type="password" id="buchConfirmPassword" class="field" required>
+              </div>
+              <div class="btn-group">
+                <button type="submit" class="btn">Passwort ändern</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section id="users" class="section-hidden">
+        <h1 class="page-title">Benutzer</h1>
+        <p class="page-subtitle">Neue Benutzer anlegen und bestehende Nutzer verwalten.</p>
+
+        <div class="card">
+          <h2 class="card-title">Neuen Benutzer erstellen</h2>
+          <form id="userForm">
+            <div class="grid grid-2">
+              <div class="form-group">
+                <label class="label">Benutzername *</label>
+                <input type="text" id="newUserName" class="field" required>
+              </div>
+              <div class="form-group">
+                <label class="label">Passwort *</label>
+                <input type="password" id="newUserPassword" class="field" required>
+              </div>
+            </div>
+            <div class="grid grid-2">
+              <div class="form-group">
+                <label class="label">Rolle</label>
+                <select id="newUserRole" class="field">
+                  <option value="admin">Admin</option>
+                  <option value="user">User</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="label">Aktiv</label>
+                <select id="newUserActive" class="field">
+                  <option value="true">Ja</option>
+                  <option value="false">Nein</option>
+                </select>
+              </div>
+            </div>
+            <div class="btn-group">
+              <button type="submit" class="btn">Benutzer hinzufügen</button>
+              <button type="button" class="btn" onclick="document.getElementById('userForm').reset();" style="border-color: #555;">Zurücksetzen</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Bestehende Benutzer</h2>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Benutzer</th>
+                  <th>Rolle</th>
+                  <th>Aktiv</th>
+                  <th>Aktion</th>
+                </tr>
+              </thead>
+              <tbody id="usersTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <section id="categories" class="section-hidden">
         <h1 class="page-title">Kategorien</h1>
         <p class="page-subtitle">Verwalten Sie Produktkategorien</p>
@@ -637,6 +1043,57 @@
         </div>
 
         <div class="card">
+          <h2 class="card-title">Rechnungseinstellungen</h2>
+          <form id="invoiceSettingsForm">
+            <div class="form-group">
+              <label class="label">Firmenname</label>
+              <input type="text" id="invoiceCompanyName" class="field" placeholder="Richemont Monaco">
+            </div>
+            <div class="form-group">
+              <label class="label">Rechnungsadresse</label>
+              <textarea id="invoiceAddress" class="field" placeholder="bojuzm 1   24402 esgrus"></textarea>
+            </div>
+            <div class="grid grid-2">
+              <div class="form-group">
+                <label class="label">E-Mail</label>
+                <input type="email" id="invoiceEmail" class="field" placeholder="info@richemont-monaco.com">
+              </div>
+              <div class="form-group">
+                <label class="label">Telefon</label>
+                <input type="text" id="invoicePhone" class="field" placeholder="+377 99 00 00 00">
+              </div>
+            </div>
+            <div class="grid grid-2">
+              <div class="form-group">
+                <label class="label">Bankname</label>
+                <input type="text" id="invoiceBankName" class="field" placeholder="Monaco Bank">
+              </div>
+              <div class="form-group">
+                <label class="label">Website</label>
+                <input type="text" id="invoiceWebsite" class="field" placeholder="www.richemont-monaco.com">
+              </div>
+            </div>
+            <div class="grid grid-2">
+              <div class="form-group">
+                <label class="label">IBAN</label>
+                <input type="text" id="invoiceIban" class="field" placeholder="DE00 0000 0000 0000 0000 00">
+              </div>
+              <div class="form-group">
+                <label class="label">BIC</label>
+                <input type="text" id="invoiceBic" class="field" placeholder="MOCBDEFFXXX">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="label">Rechnungs-Footer</label>
+              <textarea id="invoiceFooter" class="field" placeholder="© 2026 Richemont Monaco • info@richemont-monaco.com • www.richemont-monaco.com"></textarea>
+            </div>
+            <div class="btn-group">
+              <button type="submit" class="btn">Speichern</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
           <h2 class="card-title">Passwort ändern</h2>
           <form id="passwordChangeForm">
             <div class="form-group">
@@ -664,11 +1121,15 @@
     const API_BASE = '/api';
     let token = null;
     let products = [];
+    let orders = [];
+    let expenses = [];
     let categories = [];
     let discounts = [];
     let images = [];
+    let users = [];
     let maintenance = { active: false, message: '', availableAt: '' };
     let siteContent = { heroImage: '', homepageHeadline: '', homepageDescription: '', announcementText: '' };
+    let invoiceDetails = { companyName: '', address: '', email: '', phone: '', bankName: '', iban: '', bic: '', website: '', footerText: '' };
     let editingProductIndex = -1;
 
     // Init
@@ -677,10 +1138,17 @@
       setupNav();
       setupForms();
       loadData();
+      initSectionFromHash();
     });
 
     async function checkAuth() {
-      token = localStorage.getItem('adminToken');
+      // accept either legacy `adminToken` or new `richemont_admin_token` set by the login page
+      token = localStorage.getItem('adminToken') || localStorage.getItem('richemont_admin_token');
+      // if only the richemont key exists, mirror it for compatibility
+      if (!localStorage.getItem('adminToken') && localStorage.getItem('richemont_admin_token')) {
+        localStorage.setItem('adminToken', localStorage.getItem('richemont_admin_token'));
+      }
+
       if (!token) {
         window.location.href = '/admin.html';
         return;
@@ -692,10 +1160,25 @@
         document.getElementById('accountUsername').textContent = me.username || 'Admin';
         document.getElementById('accountRole').textContent = me.role || 'Admin';
         localStorage.setItem('adminUser', JSON.stringify({ username: me.username }));
+        // Show products as default
+        showSection('products');
       } catch (error) {
         localStorage.removeItem('adminToken');
+        localStorage.removeItem('richemont_admin_token');
         localStorage.removeItem('adminUser');
         window.location.href = '/admin.html';
+      }
+    }
+
+    function showSection(sectionId) {
+      document.querySelectorAll('section.section-hidden').forEach(s => s.classList.remove('active'));
+      const target = sectionId && document.getElementById(sectionId) ? sectionId : 'products';
+      document.getElementById(target).classList.add('active');
+      document.querySelectorAll('.nav-item').forEach(i => {
+        i.classList.toggle('active', i.dataset.section === target || i.dataset.buchSection === target);
+      });
+      if (window.location.hash !== `#${target}`) {
+        history.replaceState(null, '', `#${target}`);
       }
     }
 
@@ -703,18 +1186,42 @@
       document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', (e) => {
           e.preventDefault();
-          const sectionId = item.dataset.section;
-          document.querySelectorAll('section[id]').forEach(s => s.classList.remove('active'));
-          document.getElementById(sectionId).classList.add('active');
-          document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-          item.classList.add('active');
+          if (item.dataset.buchSection) {
+            showSection(item.dataset.buchSection);
+          } else if (item.dataset.section) {
+            showSection(item.dataset.section);
+          }
         });
       });
+    }
+
+    function showBuchSection(sectionId) {
+      // Redirect to showSection for consistency
+      showSection(sectionId);
     }
 
     function setupForms() {
       document.getElementById('productForm').addEventListener('submit', saveProduct);
       document.getElementById('categoryForm').addEventListener('submit', saveCategory);
+      document.getElementById('userForm')?.addEventListener('submit', createUser);
+      document.getElementById('buchExpenseForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await createExpense();
+      });
+      document.getElementById('buchUserForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await createBuchUser();
+      });
+      document.getElementById('buchSettingsForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await saveSettings();
+      });
+      document.getElementById('buchPasswordForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await changePassword();
+      });
+      document.getElementById('buchLoadCashbook')?.addEventListener('click', loadCashbook);
+      document.getElementById('buchExportCashbook')?.addEventListener('click', exportCashbook);
     }
 
     function showAlert(msg, type = 'success') {
@@ -754,12 +1261,33 @@
         discounts = data.discounts || [];
         maintenance = data.maintenance || maintenance;
         siteContent = data.siteContent || siteContent;
+        invoiceDetails = data.invoiceDetails || invoiceDetails;
         renderProductsTable();
         renderCategoriesTable();
         renderMaintenanceForm();
-        await loadImages();
+
+        const imagePromise = loadImages();
+        const userPromise = loadUsers();
+        await loadOrders();
+        await loadExpenses();
+        await loadBuchhaltung();
+        renderBuchOrdersTable();
+        renderBuchExpensesTable();
+        await Promise.all([imagePromise, userPromise]);
       } catch (e) {
         showAlert('Fehler beim Laden: ' + e.message, 'error');
+      }
+    }
+
+    function initSectionFromHash() {
+      const hash = window.location.hash.replace('#', '');
+      if (hash && hash.startsWith('buch-')) {
+        showSection('buchhaltung');
+        showBuchSection(hash);
+      } else if (hash && document.getElementById(hash)) {
+        showSection(hash);
+      } else {
+        showSection('products');
       }
     }
 
@@ -768,7 +1296,7 @@
         const res = await authFetch(`${API_BASE}/all`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ products, categories, discounts, maintenance, siteContent })
+          body: JSON.stringify({ products, categories, discounts, maintenance, siteContent, invoiceDetails })
         });
         if (!res.success) throw new Error(res.error);
         return true;
@@ -786,6 +1314,15 @@
       document.getElementById('homepageHeadline').value = siteContent.homepageHeadline || '';
       document.getElementById('homepageDescription').value = siteContent.homepageDescription || '';
       document.getElementById('announcementText').value = siteContent.announcementText || '';
+      document.getElementById('invoiceCompanyName').value = invoiceDetails.companyName || '';
+      document.getElementById('invoiceAddress').value = invoiceDetails.address || '';
+      document.getElementById('invoiceEmail').value = invoiceDetails.email || '';
+      document.getElementById('invoicePhone').value = invoiceDetails.phone || '';
+      document.getElementById('invoiceBankName').value = invoiceDetails.bankName || '';
+      document.getElementById('invoiceIban').value = invoiceDetails.iban || '';
+      document.getElementById('invoiceBic').value = invoiceDetails.bic || '';
+      document.getElementById('invoiceWebsite').value = invoiceDetails.website || '';
+      document.getElementById('invoiceFooter').value = invoiceDetails.footerText || '';
     }
 
     async function loadImages() {
@@ -795,6 +1332,208 @@
         renderImagesGallery();
       } catch (e) {
         showAlert('Fehler beim Laden der Bilder: ' + e.message, 'error');
+      }
+    }
+
+    async function loadOrders() {
+      try {
+        const data = await authFetch(`${API_BASE}/orders`);
+        orders = data.orders || [];
+        renderOrdersTable();
+      } catch (e) {
+        showAlert('Fehler beim Laden der Bestellungen: ' + e.message, 'error');
+      }
+    }
+
+    async function loadExpenses() {
+      try {
+        const data = await authFetch(`${API_BASE}/expenses`);
+        expenses = data.expenses || [];
+        renderBuchhaltung();
+      } catch (e) {
+        showAlert('Fehler beim Laden der Ausgaben: ' + e.message, 'error');
+      }
+    }
+
+    async function loadBuchhaltung() {
+      try {
+        const data = await authFetch(`${API_BASE}/bookkeeping/summary`);
+        if (!data) return;
+        document.getElementById('buchhaltungRevenue').textContent = `€ ${Number(data.revenue || 0).toFixed(2)}`;
+        document.getElementById('buchhaltungExpenses').textContent = `€ ${Number(data.expenseTotal || 0).toFixed(2)}`;
+        document.getElementById('buchhaltungProfit').textContent = `€ ${Number(data.netProfit || 0).toFixed(2)}`;
+        document.getElementById('buchhaltungOpenOrders').textContent = data.openOrders || 0;
+        renderBuchhaltung();
+        renderBuchOrdersTable();
+        renderBuchExpensesTable();
+      } catch (e) {
+        showAlert('Fehler beim Laden der Buchhaltung: ' + e.message, 'error');
+      }
+    }
+
+    function renderBuchOrdersTable() {
+      const orderBody = document.getElementById('buchOrdersTable');
+      if (!orderBody) return;
+      orderBody.innerHTML = '';
+      const recentOrders = [...orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      recentOrders.forEach(order => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${order.id}</td>
+          <td>${order.customer?.name || '-'}</td>
+          <td>${order.customer?.email || '-'}</td>
+          <td>€ ${Number(order.total || 0).toFixed(2)}</td>
+          <td>${order.status || 'offen'}</td>
+          <td>${order.createdAt ? new Date(order.createdAt).toLocaleDateString('de-DE') : '-'}</td>
+        `;
+        orderBody.appendChild(row);
+      });
+    }
+
+    function renderBuchhaltung() {
+      renderBuchOrdersTable();
+      renderBuchExpensesTable();
+    }
+
+    function renderBuchExpensesTable() {
+      const expenseBody = document.getElementById('buchExpensesTable');
+      if (!expenseBody) return;
+      expenseBody.innerHTML = '';
+      const recentExpenses = [...expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+      recentExpenses.forEach(expense => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${expense.date || '-'}</td>
+          <td>${expense.supplier || '-'}</td>
+          <td>${expense.description || '-'}</td>
+          <td>€ ${Number(expense.amount || 0).toFixed(2)}</td>
+          <td>€ ${Number(expense.taxAmount || 0).toFixed(2)}</td>
+          <td>${expense.category || '-'}</td>
+        `;
+        expenseBody.appendChild(row);
+      });
+    }
+
+    async function createExpense() {
+      const supplier = document.getElementById('buchExpenseSupplier').value.trim();
+      const amount = Number(document.getElementById('buchExpenseAmount').value);
+      const date = document.getElementById('buchExpenseDate').value;
+      const taxRate = Number(document.getElementById('buchExpenseTaxRate').value);
+      const description = document.getElementById('buchExpenseDescription').value.trim();
+      const category = document.getElementById('buchExpenseCategory').value.trim() || 'Allgemein';
+      if (!supplier || !amount || !date) {
+        showAlert('Lieferant, Betrag und Datum erforderlich.', 'error');
+        return;
+      }
+      try {
+        const res = await authFetch(`${API_BASE}/expenses`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ supplier, amount, date, taxRate, description, category })
+        });
+        if (!res.success) throw new Error(res.error || 'Fehler beim Speichern');
+        showAlert('Ausgabe gespeichert');
+        await loadExpenses();
+        await loadBuchhaltung();
+        document.getElementById('buchExpenseForm').reset();
+      } catch (e) {
+        showAlert('Fehler beim Erstellen der Ausgabe: ' + e.message, 'error');
+      }
+    }
+
+    async function loadCashbook() {
+      try {
+        const data = await authFetch(`${API_BASE}/bookkeeping/cashbook`);
+        const entries = data.entries || [];
+        const body = document.getElementById('buchCashbookTable');
+        if (!body) return;
+        body.innerHTML = '';
+        entries.forEach(entry => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${entry.type || '-'}</td>
+            <td>${entry.date || '-'}</td>
+            <td>${entry.partner || '-'}</td>
+            <td>${entry.description || '-'}</td>
+            <td>€ ${Number(entry.amount || 0).toFixed(2)}</td>
+            <td>€ ${Number(entry.tax || 0).toFixed(2)}</td>
+            <td>${entry.category || '-'}</td>
+          `;
+          body.appendChild(row);
+        });
+      } catch (e) {
+        showAlert('Fehler beim Laden des Kassenbuchs: ' + e.message, 'error');
+      }
+    }
+
+    async function exportCashbook() {
+      try {
+        const response = await fetch(`${API_BASE}/bookkeeping/export-cashbook`, {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Export fehlgeschlagen');
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'kassenbuch.odt';
+        document.body.appendChild(a);
+        a.click();
+        URL.revokeObjectURL(url);
+        a.remove();
+      } catch (e) {
+        showAlert('Fehler beim Exportieren des Kassenbuchs: ' + e.message, 'error');
+      }
+    }
+
+    async function createBuchUser() {
+      const username = document.getElementById('buchNewUserName').value.trim();
+      const password = document.getElementById('buchNewUserPassword').value;
+      const role = document.getElementById('buchNewUserRole').value;
+      const active = document.getElementById('buchNewUserActive').value === 'true';
+      if (!username || !password) {
+        showAlert('Benutzername und Passwort sind erforderlich.', 'error');
+        return;
+      }
+      try {
+        const res = await authFetch(`${API_BASE}/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, role, active })
+        });
+        if (!res.success) throw new Error(res.error || 'Fehler beim Anlegen des Benutzers');
+        showAlert('Benutzer angelegt');
+        document.getElementById('buchUserForm').reset();
+        await loadUsers();
+      } catch (e) {
+        showAlert('Fehler beim Anlegen des Benutzers: ' + e.message, 'error');
+      }
+    }
+
+    async function changePassword() {
+      try {
+        const currentPassword = document.getElementById('buchCurrentPassword').value;
+        const newPassword = document.getElementById('buchNewPassword').value;
+        const confirmPassword = document.getElementById('buchConfirmPassword').value;
+        if (!currentPassword || !newPassword || !confirmPassword) {
+          showAlert('Alle Felder sind erforderlich.', 'error');
+          return;
+        }
+        if (newPassword !== confirmPassword) {
+          showAlert('Neue Passwörter stimmen nicht überein.', 'error');
+          return;
+        }
+        const res = await authFetch(`${API_BASE}/auth/change-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ currentPassword, newPassword })
+        });
+        if (!res.success) throw new Error(res.error || 'Fehler beim Ändern des Passworts');
+        showAlert('Passwort erfolgreich geändert');
+        document.getElementById('buchPasswordForm').reset();
+      } catch (e) {
+        showAlert('Fehler beim Ändern des Passworts: ' + e.message, 'error');
       }
     }
 
@@ -858,7 +1597,30 @@
       siteContent.homepageDescription = document.getElementById('homepageDescription').value.trim();
       siteContent.announcementText = document.getElementById('announcementText').value.trim();
       if (await saveAllData()) {
-        showAlert('Wartungs- und Startseiteninhalt gespeichert');
+        showAlert('Wartungseinstellungen gespeichert');
+      }
+    });
+
+    document.getElementById('invoiceSettingsForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      invoiceDetails.companyName = document.getElementById('invoiceCompanyName').value.trim();
+      invoiceDetails.address = document.getElementById('invoiceAddress').value.trim();
+      invoiceDetails.email = document.getElementById('invoiceEmail').value.trim();
+      invoiceDetails.phone = document.getElementById('invoicePhone').value.trim();
+      invoiceDetails.bankName = document.getElementById('invoiceBankName').value.trim();
+      invoiceDetails.iban = document.getElementById('invoiceIban').value.trim();
+      invoiceDetails.bic = document.getElementById('invoiceBic').value.trim();
+      invoiceDetails.website = document.getElementById('invoiceWebsite').value.trim();
+      invoiceDetails.footerText = document.getElementById('invoiceFooter').value.trim();
+      if (await saveAllData()) {
+        showAlert('Rechnungseinstellungen gespeichert');
+        // reload settings and notify other tabs (invoice previews) to refresh
+        await loadData();
+        try {
+          localStorage.setItem('invoiceUpdatedAt', String(Date.now()));
+        } catch (e) {
+          console.warn('Could not set invoiceUpdatedAt in localStorage', e);
+        }
       }
     });
 
@@ -956,6 +1718,157 @@
       });
     }
 
+    function renderOrdersTable() {
+      const tbody = document.getElementById('ordersTable');
+      const searchTerm = String(document.getElementById('orderSearchInput')?.value || '').trim().toUpperCase();
+      tbody.innerHTML = '';
+      const filteredOrders = orders.slice().reverse().filter((order) => {
+        if (!searchTerm) return true;
+        const idMatch = String(order.id || '').toUpperCase().includes(searchTerm);
+        const trackingMatch = String(order.trackingNumber || '').toUpperCase().includes(searchTerm);
+        return idMatch || trackingMatch;
+      });
+      if (!filteredOrders.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#555;padding:20px;">Keine Bestellungen gefunden.</td></tr>';
+        return;
+      }
+      filteredOrders.forEach((order) => {
+        const row = document.createElement('tr');
+        row.dataset.orderId = order.id;
+        row.innerHTML = `
+          <td>${order.id}</td>
+          <td>${order.customer?.name || '–'}</td>
+          <td>${order.customer?.email || '–'}</td>
+          <td>${order.total?.toFixed(2) ?? '0.00'} €</td>
+          <td>
+            <select class="field order-status-select">
+              <option value="offen" ${order.status === 'offen' ? 'selected' : ''}>offen</option>
+              <option value="bezahlt" ${order.status === 'bezahlt' ? 'selected' : ''}>bezahlt</option>
+              <option value="versendet" ${order.status === 'versendet' ? 'selected' : ''}>versendet</option>
+              <option value="storniert" ${order.status === 'storniert' ? 'selected' : ''}>storniert</option>
+            </select>
+          </td>
+          <td>
+            <input class="field order-tracking-input" type="text" value="${order.trackingNumber || ''}" placeholder="Tracking-Nummer">
+          </td>
+          <td>
+            <div class="btn-group-inline">
+              <button class="btn" type="button" onclick="saveOrderUpdate('${order.id.replace(/'/g, "\\'")}')">Speichern</button>
+              <button class="btn" type="button" onclick="openInvoice('${order.id.replace(/'/g, "\\'")}')">Öffnen</button>
+              <button class="btn" type="button" onclick="downloadInvoice('${order.id.replace(/'/g, "\\'")}')">Herunterladen</button>
+              <button class="btn" type="button" onclick="confirmDeleteOrder('${order.id.replace(/'/g, "\\'")}')" style="border-color:#b00;">Löschen</button>
+            </div>
+          </td>
+          <td>${new Date(order.createdAt).toLocaleString('de-DE')}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    async function saveOrderUpdate(orderId) {
+      const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+      if (!row) {
+        showAlert('Bestellung nicht gefunden', 'error');
+        return;
+      }
+      const statusEl = row.querySelector('.order-status-select');
+      const trackingEl = row.querySelector('.order-tracking-input');
+      const updates = {
+        status: statusEl?.value || 'offen',
+        trackingNumber: trackingEl?.value.trim() || ''
+      };
+
+      try {
+        const response = await authFetch(`${API_BASE}/orders/${encodeURIComponent(orderId)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates)
+        });
+        const updatedOrder = response.order;
+        const index = orders.findIndex((o) => String(o.id) === String(updatedOrder.id));
+        if (index !== -1) {
+          orders[index] = updatedOrder;
+        }
+        renderOrdersTable();
+        showAlert('Bestellung aktualisiert');
+      } catch (error) {
+        showAlert('Speichern fehlgeschlagen: ' + error.message, 'error');
+      }
+    }
+
+    async function openInvoice(orderId) {
+      window.open(`${API_BASE}/orders/${encodeURIComponent(orderId)}/invoice`, '_blank');
+    }
+
+    async function downloadInvoice(orderId) {
+      try {
+        const response = await fetch(`${API_BASE}/orders/${encodeURIComponent(orderId)}/invoice`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || 'Download fehlgeschlagen');
+        }
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `rechnung-${orderId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        showAlert('Rechnung konnte nicht heruntergeladen werden: ' + error.message, 'error');
+      }
+    }
+
+    async function confirmCreateTestOrder() {
+      if (!confirm('Eine Testbestellung erstellen?')) return;
+      try {
+        const response = await authFetch(`${API_BASE}/orders/test`, { method: 'POST' });
+        orders.push(response.order);
+        renderOrdersTable();
+        showAlert('Testbestellung erstellt: ' + response.order.id);
+      } catch (error) {
+        showAlert('Testbestellung fehlgeschlagen: ' + error.message, 'error');
+      }
+    }
+
+    async function deleteOrder(orderId) {
+      try {
+        await authFetch(`${API_BASE}/orders/${encodeURIComponent(orderId)}`, { method: 'DELETE' });
+        orders = orders.filter((o) => String(o.id) !== String(orderId));
+        renderOrdersTable();
+        showAlert('Bestellung gelöscht');
+      } catch (error) {
+        showAlert('Löschen fehlgeschlagen: ' + error.message, 'error');
+      }
+    }
+
+    function confirmDeleteOrder(orderId) {
+      if (confirm('Bestellung wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+        deleteOrder(orderId);
+      }
+    }
+
+    async function deleteAllOrders() {
+      try {
+        await authFetch(`${API_BASE}/orders`, { method: 'DELETE' });
+        orders = [];
+        renderOrdersTable();
+        showAlert('Alle Bestellungen wurden gelöscht');
+      } catch (error) {
+        showAlert('Löschen aller Bestellungen fehlgeschlagen: ' + error.message, 'error');
+      }
+    }
+
+    function confirmDeleteAllOrders() {
+      if (confirm('Alle Bestellungen wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+        deleteAllOrders();
+      }
+    }
+
     // CATEGORIES
     function renderCategoriesTable() {
       const tbody = document.getElementById('categoriesTable');
@@ -965,6 +1878,69 @@
         row.innerHTML = `<td>${c.name}</td><td>${c.description || '–'}</td>`;
         tbody.appendChild(row);
       });
+    }
+
+    async function loadUsers() {
+      try {
+        const data = await authFetch(`${API_BASE}/users`);
+        users = data.users || [];
+        renderUsersTable();
+      } catch (e) {
+        showAlert('Fehler beim Laden der Benutzer: ' + e.message, 'error');
+      }
+    }
+
+    function renderUsersTable() {
+      const tbody = document.getElementById('usersTable');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      users.forEach((user) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${user.username}</td>
+          <td>${user.role}</td>
+          <td>${user.active ? 'Ja' : 'Nein'}</td>
+          <td><button class="btn" onclick="deleteUser('${user.username}')">Löschen</button></td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    async function createUser(e) {
+      e.preventDefault();
+      const username = document.getElementById('newUserName').value.trim();
+      const password = document.getElementById('newUserPassword').value;
+      const role = document.getElementById('newUserRole').value;
+      const active = document.getElementById('newUserActive').value === 'true';
+      if (!username || !password) {
+        showAlert('Benutzername und Passwort sind erforderlich.', 'error');
+        return;
+      }
+      try {
+        const res = await authFetch(`${API_BASE}/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, role, active })
+        });
+        if (!res.success) throw new Error(res.error || 'Fehler beim Anlegen des Benutzers');
+        showAlert('Benutzer angelegt');
+        document.getElementById('userForm').reset();
+        await loadUsers();
+      } catch (e) {
+        showAlert('Fehler beim Anlegen des Benutzers: ' + e.message, 'error');
+      }
+    }
+
+    async function deleteUser(username) {
+      if (!confirm(`Benutzer ${username} wirklich löschen?`)) return;
+      try {
+        const res = await authFetch(`${API_BASE}/users/${encodeURIComponent(username)}`, { method: 'DELETE' });
+        if (!res.success) throw new Error(res.error || 'Fehler beim Löschen');
+        showAlert('Benutzer gelöscht');
+        await loadUsers();
+      } catch (e) {
+        showAlert('Fehler beim Löschen des Benutzers: ' + e.message, 'error');
+      }
     }
 
     async function saveCategory(e) {
@@ -987,6 +1963,7 @@
 
     function logout() {
       localStorage.removeItem('adminToken');
+      localStorage.removeItem('richemont_admin_token');
       localStorage.removeItem('adminUser');
       window.location.href = '/admin.html';
     }

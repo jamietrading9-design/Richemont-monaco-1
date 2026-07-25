@@ -1,0 +1,25 @@
+[
+  {
+    "id": "TEST-1783924587843",
+    "items": [
+      {
+        "productId": "test-product",
+        "title": "Testbestellung",
+        "quantity": 1,
+        "price": 49.99
+      }
+    ],
+    "total": 49.99,
+    "customer": {
+      "name": "Test Kunde",
+      "email": "test@richemont-monaco.com",
+      "address": "Musterstraße 1, 12345 Berlin"
+    },
+    "notes": "Testbestellung vom Admin",
+    "paymentMethod": "banktransfer",
+    "iban": "DE12 3456 7890 1234 5678 90",
+    "status": "offen",
+    "trackingNumber": "",
+    "createdAt": "2026-07-13T06:36:27.843Z"
+  }
+]

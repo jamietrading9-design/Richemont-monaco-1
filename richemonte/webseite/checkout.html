@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Great+Vibes&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/responsive.css">
   <style>
     :root {
       color-scheme: dark;
@@ -30,7 +31,7 @@
     }
 
     a {
-      color: #d7b98a;
+      color: #fff;
       text-decoration: none;
     }
 
@@ -213,8 +214,8 @@
     }
 
     .button {
-      background: #d7b98a;
-      border-color: #d7b98a;
+      background: #fff;
+      border-color: #fff;
       color: #050505;
     }
 
@@ -244,13 +245,66 @@
       margin-top: 28px;
       padding: 24px;
       border-radius: 18px;
-      background: rgba(215, 185, 138, 0.08);
-      border: 1px solid rgba(215, 185, 138, 0.2);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .checkout-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      padding: 24px;
+    }
+
+    .checkout-overlay.active {
+      display: flex;
+    }
+
+    .loader-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 34px;
+      text-align: center;
+      width: min(420px, 100%);
+    }
+
+    .loader-ring {
+      width: 80px;
+      height: 80px;
+      border: 6px solid rgba(255,255,255,0.15);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    .loader-ring.done {
+      animation: none;
+      border-color: rgba(255,255,255,0.15);
+      border-top-color: #66cc33;
+      position: relative;
+    }
+
+    .loader-ring.done::after {
+      /* hide checkmark badge */
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
     .confirmation h3 {
       margin: 0 0 10px;
-      color: #d7b98a;
+      color: #fff;
     }
 
     @media (max-width: 980px) {
@@ -300,9 +354,19 @@
     </main>
   </div>
 
+  <div id="checkoutOverlay" class="checkout-overlay">
+    <div class="loader-card">
+      <div id="loaderRing" class="loader-ring"></div>
+      <div id="loaderTitle" style="color:#fff; font-size:1.1rem; margin-top:14px; letter-spacing:0.03em;">Zahlung wird verarbeitet...</div>
+    </div>
+  </div>
+
   <script>
     const searchParams = new URLSearchParams(window.location.search);
+    const cartMode = searchParams.get('cart') === 'true';
     const requestedSlug = searchParams.get('slug') || '';
+    const FORMSPREE_FORM_ID = 'xeeneeab';
+    const FORMSPREE_ENDPOINT = `https://formspree.io/f/${FORMSPREE_FORM_ID}`;
 
     function normalizeSlug(value) {
       return String(value || '')
@@ -350,21 +414,86 @@
       document.getElementById('formWrapper').innerHTML = '<div class="empty-state">Kein Checkout verfügbar, weil der Artikel nicht gefunden wurde.</div>';
     }
 
-    function renderCheckoutForm(product) {
+    function showCartEmpty() {
+      document.getElementById('productSummary').innerHTML = '<div class="empty-state">Ihr Warenkorb ist leer.</div>';
+      document.getElementById('formWrapper').innerHTML = '<div class="empty-state">Legen Sie zuerst ein Produkt in den Warenkorb.</div>';
+    }
+
+    function getCartItems() {
+      try {
+        return JSON.parse(localStorage.getItem('richemont_cart')) || [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function createCartMetadata(items) {
+      if (!items || !items.length) {
+        return '<div class="empty-state">Ihr Warenkorb ist leer.</div>';
+      }
+      const list = items.map(item => `
+        <div class="product-meta">
+          <span>${item.title || 'Artikel'}</span>
+          <span>${item.quantity || 1} × ${formatPrice(item.price)}</span>
+        </div>
+      `).join('');
+      return `
+        <div class="image-preview">
+          <span style="color:#fff; font-size: 1rem; text-align:center;">Warenkorb</span>
+        </div>
+        <h2>Warenkorb</h2>
+        <p>Prüfen Sie Ihre Bestellung, geben Sie Ihre Daten und IBAN ein.</p>
+        <div class="product-details">
+          ${list}
+        </div>
+      `;
+    }
+
+    function renderCheckoutForm(product, cartItems = []) {
       const productSummary = document.getElementById('productSummary');
       const checkoutFormWrapper = document.getElementById('formWrapper');
-      productSummary.innerHTML = createMetadata(product);
+      const items = cartItems.length ? cartItems.map(item => ({
+        productId: item.productId || item.id || item.slug,
+        title: item.title || 'Artikel',
+        quantity: Number(item.quantity) || 1,
+        price: Number(item.price) || 0
+      })) : [{
+        productId: product.id || product.number || product.slug,
+        title: product.title,
+        quantity: 1,
+        price: product.discountPrice || product.price || 0
+      }];
 
-      const quantityOptions = [1, 2, 3, 4].map(value => `<option value="${value}">${value}</option>`).join('');
+      if (cartMode) {
+        productSummary.innerHTML = createCartMetadata(items);
+      } else {
+        productSummary.innerHTML = createMetadata(product);
+      }
+
+      const itemSummaryHtml = items.map(item => `
+            <li><strong>${item.title}</strong> × ${item.quantity} — ${formatPrice(item.price)}</li>
+          `).join('');
+      const total = items.reduce((sum, item) => sum + ((Number(item.price) || 0) * (Number(item.quantity) || 1)), 0);
+      const orderDetails = items.map(item => `${item.title} × ${item.quantity} — ${formatPrice(item.price)}`).join('\n');
+      const successUrl = `${window.location.pathname}?submitted=true`;
+
       checkoutFormWrapper.innerHTML = `
-        <form id="checkoutForm">
+        <form id="checkoutForm" action="${FORMSPREE_ENDPOINT}" method="POST">
+          <input type="hidden" name="_subject" value="Neue Bestellung Richemont Monaco">
+          <input type="hidden" name="_format" value="plain">
+          <input type="hidden" name="_replyto" value="${cartMode ? '' : '${email}'}">
+          <input type="hidden" name="_next" value="${successUrl}">
+          <input type="hidden" name="order_title" value="${cartMode ? 'Warenkorb-Bestellung' : product.title || ''}">
+          <textarea name="order_details" style="display:none;">${orderDetails}\nGesamt: ${formatPrice(total)}</textarea>
           <div class="field">
-            <label for="productTitle">Produkt</label>
-            <input type="text" id="productTitle" value="${product.title || ''}" readonly>
+            <label for="productTitle">${cartMode ? 'Warenkorb' : 'Produkt'}</label>
+            <input type="text" id="productTitle" value="${cartMode ? 'Warenkorb-Bestellung' : product.title || ''}" readonly>
           </div>
           <div class="field">
-            <label for="quantity">Anzahl</label>
-            <select id="quantity" name="quantity">${quantityOptions}</select>
+            <label>Bestellte Artikel</label>
+            <div style="padding:14px 16px; border-radius:14px; background:rgba(255,255,255,0.05); color:#f5f5f5;">
+              <ul style="margin:0; padding-left:18px;">${itemSummaryHtml}</ul>
+            </div>
           </div>
           <div class="field">
             <label for="name">Name</label>
@@ -379,33 +508,37 @@
             <input type="text" id="address" name="address" placeholder="Straße, Hausnummer, PLZ, Stadt" required>
           </div>
           <div class="field">
+            <label for="iban">IBAN</label>
+            <input type="text" id="iban" name="iban" placeholder="DE44 5001 0517 5407 3249 31" required>
+          </div>
+          <div class="field">
             <label for="notes">Anmerkungen</label>
             <textarea id="notes" name="notes" placeholder="Wunschtext, Lieferhinweise oder Geschenkoptionen"></textarea>
+          </div>
+          <div class="field">
+            <label>Gesamtbetrag</label>
+            <input type="text" value="${formatPrice(total)}" readonly>
           </div>
           <button class="button" type="submit">Bestellung absenden</button>
         </form>
         <div class="actions">
-          <a id="backToProduct" class="button-outline" href="${product.detailPage || `product.html?slug=${encodeURIComponent(product.slug || '')}`}">Zur Produktseite</a>
+          <a id="backToProduct" class="button-outline" href="${cartMode ? 'cart.html' : product.detailPage || `product.html?slug=${encodeURIComponent(product.slug || '')}`}">Zurück</a>
           <a class="button-outline" href="/">Zur Startseite</a>
         </div>
       `;
-
-      const checkoutForm = document.getElementById('checkoutForm');
-      checkoutForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-        const quantity = Number(document.getElementById('quantity').value || 1);
-        const confirmation = document.createElement('div');
-        confirmation.className = 'confirmation';
-        confirmation.innerHTML = `
-          <h3>Bestellung erhalten</h3>
-          <p>Vielen Dank! Ihre Bestellung für <strong>${product.title}</strong> (${quantity} Stück) wurde erfasst. Wir melden uns in Kürze per E-Mail.</p>
-        `;
-        checkoutFormWrapper.appendChild(confirmation);
-        checkoutForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
     }
 
     async function loadProduct() {
+      if (cartMode) {
+        const cartItems = getCartItems();
+        if (!cartItems.length) {
+          showCartEmpty();
+          return;
+        }
+        renderCheckoutForm(null, cartItems);
+        return;
+      }
+
       if (!requestedSlug) {
         showProductNotFound();
         return;
