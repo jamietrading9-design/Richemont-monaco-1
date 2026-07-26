@@ -214,6 +214,13 @@ chmod 755 data/
 chmod 644 data/*.json
 ```
 
+## 🌐 GitHub-Deployment
+
+1. Repository auf GitHub anlegen oder vorhandenes Repository verbinden.
+2. In den Repository-Einstellungen unter Pages die Option „GitHub Actions“ aktivieren.
+3. Die Datei [.github/workflows/deploy.yml](.github/workflows/deploy.yml) wird beim Push auf den Branch main automatisch ausgeführt.
+4. Nach Abschluss ist die Seite unter der GitHub-Pages-URL erreichbar.
+
 ## 📝 Umgebungsvariablen
 
 Optional können folgende Variablen gesetzt werden:
