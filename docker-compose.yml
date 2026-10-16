@@ -9,6 +9,9 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in your environment}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
     volumes:
       - ./data:/app/data
       - ./richemonte:/app/richemonte

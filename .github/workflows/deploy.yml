@@ -22,23 +22,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
       - name: Build static site
         run: |
           mkdir -p dist
           cp -R richemonte/webseite/. dist/
-          cp package.json dist/package.json
-          cp server.js dist/server.js
-          cp -R data dist/data 2>/dev/null || true
-          cp -R uploads dist/uploads 2>/dev/null || true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

@@ -33,7 +33,7 @@ Eine elegante, moderne Website für Designerkleidung mit integrierter Admin-Kons
 ## 🚀 Schnellstart (Local Entwicklung)
 
 ### Voraussetzungen
-- Node.js 14+ 
+- Node.js 18+
 - npm oder yarn
 
 ### Installation
@@ -42,11 +42,16 @@ Eine elegante, moderne Website für Designerkleidung mit integrierter Admin-Kons
 # 1. Dependencies installieren
 npm install
 
-# 2. Server starten
+# 2. Sichere Umgebungsvariablen setzen und Server starten
+export JWT_SECRET="$(openssl rand -base64 48)"
+export ADMIN_USERNAME="admin"
+export ADMIN_PASSWORD="replace-with-a-unique-password-at-least-12-characters"
 npm start
 ```
 
 Server läuft auf: **http://localhost:3000**
+
+`JWT_SECRET` muss mindestens 32 Bytes lang sein. `ADMIN_USERNAME` und ein mindestens 12 Zeichen langes `ADMIN_PASSWORD` werden beim ersten Start zum Anlegen des Admin-Kontos verwendet. Bei vorhandenen Konten mit den früheren Standardpasswörtern müssen diese Variablen gesetzt sein, damit der Server das angegebene Konto sicher zurücksetzt und weitere betroffene Standardkonten deaktiviert. Speichere diese Werte in einer lokalen, nicht eingecheckten Umgebungsdatei oder in der Secret-Verwaltung des Hosters. Der Server startet ohne sicheren JWT-Schlüssel nicht.
 
 - 🏠 Webseite: http://localhost:3000/
 - 🔧 Admin-Dashboard: http://localhost:3000/admin.html
@@ -62,14 +67,17 @@ Das Admin-Dashboard (`/admin.html`) ermöglicht:
 - 🌟 **Featured Products**: Hervorheben auf Startseite
 - ⚙️ **Website-Einstellungen**: Titel, Untertitel ändern
 
-**Login**: Kein Passwort erforderlich (lokale Konsole)
+**Login**: Mit dem bei der Ersteinrichtung gesetzten Admin-Benutzer und Passwort.
 
 ## 🐳 Docker Deployment
 
 ### Mit Docker Compose (empfohlen)
 
 ```bash
-# Starten
+# JWT_SECRET sowie beim ersten Start ADMIN_USERNAME und ADMIN_PASSWORD setzen
+export JWT_SECRET="$(openssl rand -base64 48)"
+export ADMIN_USERNAME="admin"
+export ADMIN_PASSWORD="replace-with-a-unique-password-at-least-12-characters"
 docker-compose up -d
 
 # Server läuft auf: http://localhost:3000
@@ -81,8 +89,8 @@ docker-compose up -d
 # Image bauen
 docker build -t richemont-monaco .
 
-# Container starten
-docker run -p 3000:3000 -d richemont-monaco
+# Container starten (lokale .env-Datei und Datenspeicher bereitstellen)
+docker run --env-file .env -v ./data:/app/data -p 3000:3000 -d richemont-monaco
 ```
 
 ## 🖥️ Ubuntu Server Deployment
@@ -223,11 +231,14 @@ chmod 644 data/*.json
 
 ## 📝 Umgebungsvariablen
 
-Optional können folgende Variablen gesetzt werden:
+Folgende Variablen sind für den sicheren Betrieb relevant:
 
 ```bash
-PORT=3000              # Server Port (default: 3000)
-NODE_ENV=production    # Environment (development/production)
+PORT=3000              # Server-Port (optional, Standard: 3000)
+NODE_ENV=production    # Laufzeitumgebung
+JWT_SECRET=            # Pflicht; mindestens 32 zufällige Bytes
+ADMIN_USERNAME=        # Pflicht nur beim Anlegen des ersten Admin-Kontos
+ADMIN_PASSWORD=        # Pflicht beim ersten Start; mindestens 12 Zeichen
 ```
 
 Beispiel:

@@ -597,7 +597,9 @@ footer {
 <script>
 function toggleMenu() {
     document.getElementById('sideMenu').classList.toggle('active');
-    documupdateCartCount() {
+}
+
+function updateCartCount() {
     const cart = JSON.parse(localStorage.getItem('richemont_cart')) || [];
     const countEl = document.getElementById('cartCount');
     if (countEl) {
@@ -618,6 +620,16 @@ function getUrlParameter(name) {
 let allProducts = typeof RICHEMONTE_PRODUCTS !== 'undefined' ? RICHEMONTE_PRODUCTS : [];
 let currentProduct = null;
 let selectedSize = null;
+
+function escapeProductHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    })[character]);
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     loadProduct();
@@ -696,7 +708,7 @@ function renderProduct() {
                 <div class="spec-label">Größe</div>
                 <div class="size-selector">
                     ${currentProduct.sizes.map(size => `
-                        <button class="size-btn" onclick="selectSize('${size}', this)">${size}</button>
+                        <button class="size-btn" type="button" data-size="${escapeProductHtml(size)}">${escapeProductHtml(size)}</button>
                     `).join('')}
                 </div>
             </div>
@@ -706,18 +718,18 @@ function renderProduct() {
     container.innerHTML = `
         <div class="product-grid">
             <div class="product-image">
-                <img src="${currentProduct.image || 'Hemd-1.jpg'}" alt="${currentProduct.title}">
+                <img src="${escapeProductHtml(currentProduct.image || 'Hemd-1.jpg')}" alt="${escapeProductHtml(currentProduct.title)}">
             </div>
             <div class="product-details">
                 <div class="product-header">
-                    <div class="product-number">Kollektion ${currentProduct.number}</div>
-                    <h1>${currentProduct.title}</h1>
+                    <div class="product-number">Kollektion ${escapeProductHtml(currentProduct.number)}</div>
+                    <h1>${escapeProductHtml(currentProduct.title)}</h1>
                 </div>
 
                 ${priceHTML}
 
                 <div class="product-description">
-                    ${currentProduct.description}
+                    ${escapeProductHtml(currentProduct.description)}
                 </div>
 
                 <div class="product-specs">
@@ -726,14 +738,14 @@ function renderProduct() {
                     ${currentProduct.material ? `
                         <div class="spec-row">
                             <div class="spec-label">Material</div>
-                            <div class="spec-value">${currentProduct.material}</div>
+                            <div class="spec-value">${escapeProductHtml(currentProduct.material)}</div>
                         </div>
                     ` : ''}
                     
                     ${currentProduct.category ? `
                         <div class="spec-row">
                             <div class="spec-label">Kategorie</div>
-                            <div class="spec-value">${currentProduct.category}</div>
+                            <div class="spec-value">${escapeProductHtml(currentProduct.category)}</div>
                         </div>
                     ` : ''}
                 </div>
@@ -742,6 +754,10 @@ function renderProduct() {
             </div>
         </div>
     `;
+
+    container.querySelectorAll('.size-btn').forEach(button => {
+        button.addEventListener('click', () => selectSize(button.dataset.size, button));
+    });
 
     // Update page title
     document.title = currentProduct.title + ' – Richemont Monaco';
@@ -784,12 +800,12 @@ function renderRelatedProducts() {
     const grid = document.getElementById('relatedGrid');
     
     grid.innerHTML = related.map(product => `
-        <a href="product.html?slug=${product.slug}" class="related-item">
+        <a href="product.html?slug=${encodeURIComponent(product.slug)}" class="related-item">
             <div class="related-image">
-                <img src="${product.image || 'Hemd-1.jpg'}" alt="${product.title}">
+                <img src="${escapeProductHtml(product.image || 'Hemd-1.jpg')}" alt="${escapeProductHtml(product.title)}">
             </div>
             <div class="related-info">
-                <h3>${product.title}</h3>
+                <h3>${escapeProductHtml(product.title)}</h3>
                 <div class="related-price">${Number(product.price).toFixed(2)} €</div>
             </div>
         </a>

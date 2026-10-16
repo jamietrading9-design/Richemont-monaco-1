@@ -7,10 +7,14 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const PDFDocument = require('pdfkit');
 const AdmZip = require('adm-zip');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'richemont-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || Buffer.byteLength(JWT_SECRET) < 32) {
+  throw new Error('JWT_SECRET must be set to a random value of at least 32 bytes.');
+}
 
 app.get(['/admin', '/admin/', '/admin.html'], (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -118,21 +122,45 @@ if (!fs.existsSync(uploadsDir)) {
 
 const uploadStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsDir),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const base = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9_-]/g, '-');
-    cb(null, `${base}-${Date.now()}${ext}`);
-  }
+  filename: (req, file, cb) => cb(null, `${crypto.randomUUID()}.upload`)
 });
+
+const allowedImageTypes = new Map([
+  ['.png', 'image/png'],
+  ['.jpg', 'image/jpeg'],
+  ['.jpeg', 'image/jpeg'],
+  ['.gif', 'image/gif'],
+  ['.webp', 'image/webp']
+]);
 
 const upload = multer({
   storage: uploadStorage,
-  limits: { fileSize: 5 * 1024 * 1024 }
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const extension = path.extname(file.originalname).toLowerCase();
+    if (allowedImageTypes.get(extension) !== file.mimetype) {
+      return cb(new Error('Only PNG, JPEG, GIF and WebP images are allowed.'));
+    }
+    cb(null, true);
+  }
 });
 
-app.use('/uploads', express.static(uploadsDir));
+app.use('/uploads', express.static(uploadsDir, {
+  setHeaders: (res) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Security-Policy', "default-src 'none'; img-src 'self'; style-src 'none'; sandbox");
+  }
+}));
 
-const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'];
+const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
+
+function getImageExtension(buffer) {
+  if (buffer.length >= 8 && buffer.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))) return '.png';
+  if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) return '.jpg';
+  if (buffer.length >= 6 && ['GIF87a', 'GIF89a'].includes(buffer.toString('ascii', 0, 6))) return '.gif';
+  if (buffer.length >= 12 && buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP') return '.webp';
+  return null;
+}
 
 const listImageFiles = (dir, baseDir, routePrefix = '') => {
   const results = [];
@@ -163,6 +191,7 @@ const publicWebDir = path.join(__dirname, 'richemonte/webseite');
 const productsFile = path.join(dataDir, 'products.json');
 const settingsFile = path.join(dataDir, 'settings.json');
 const usersFile = path.join(dataDir, 'users.json');
+const authMigrationFile = path.join(dataDir, '.auth-migrations.json');
 const categoriesFile = path.join(dataDir, 'categories.json');
 const discountsFile = path.join(dataDir, 'discounts.json');
 const ordersFile = path.join(dataDir, 'orders.json');
@@ -218,25 +247,58 @@ const initializeDataFiles = () => {
   }
 
   if (!fs.existsSync(usersFile)) {
-    const defaultUsers = [
+    const username = String(process.env.ADMIN_USERNAME || '').trim();
+    const password = process.env.ADMIN_PASSWORD || '';
+    if (!username || password.length < 12) {
+      throw new Error('Set ADMIN_USERNAME and an ADMIN_PASSWORD of at least 12 characters to create the first admin account.');
+    }
+    const initialUsers = [
       {
-        id: 'jamie',
-        username: 'jamie',
-        password: bcrypt.hashSync('jamielee.1o', 10),
-        role: 'admin',
-        active: true,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 'alfred',
-        username: 'alfred',
-        password: bcrypt.hashSync('alfred', 10),
+        id: username,
+        username,
+        password: bcrypt.hashSync(password, 12),
         role: 'admin',
         active: true,
         createdAt: new Date().toISOString()
       }
     ];
-    fs.writeFileSync(usersFile, JSON.stringify(defaultUsers, null, 2));
+    fs.writeFileSync(usersFile, JSON.stringify(initialUsers, null, 2));
+    fs.writeFileSync(authMigrationFile, JSON.stringify({ legacyAdminCredentialsRotated: true }, null, 2));
+  } else {
+    const users = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
+    if (!Array.isArray(users)) {
+      throw new Error('The users data file must contain a JSON array.');
+    }
+    if (!fs.existsSync(authMigrationFile)) {
+      const legacyAccounts = users.filter(user => ['jamie', 'alfred'].includes(user.username));
+      if (legacyAccounts.length || users.length === 0) {
+        const username = String(process.env.ADMIN_USERNAME || '').trim();
+        const password = process.env.ADMIN_PASSWORD || '';
+        if (!username || password.length < 12) {
+          throw new Error('Legacy admin accounts need secure credentials. Set ADMIN_USERNAME and an ADMIN_PASSWORD of at least 12 characters to rotate them.');
+        }
+
+        let admin = users.find(user => user.username === username);
+        if (!admin) {
+          admin = {
+            id: username,
+            username,
+            role: 'admin',
+            active: true,
+            createdAt: new Date().toISOString()
+          };
+          users.push(admin);
+        }
+        admin.password = bcrypt.hashSync(password, 12);
+        admin.role = 'admin';
+        admin.active = true;
+        legacyAccounts.forEach(user => {
+          if (user !== admin) user.active = false;
+        });
+        fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+      }
+      fs.writeFileSync(authMigrationFile, JSON.stringify({ legacyAdminCredentialsRotated: true }, null, 2));
+    }
   }
 
   if (!fs.existsSync(categoriesFile)) {
@@ -280,7 +342,14 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-app.get('/api/images', authenticateToken, (req, res) => {
+const requireAdmin = (req, res, next) => {
+  if (req.user?.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin only' });
+  }
+  next();
+};
+
+app.get('/api/images', authenticateToken, requireAdmin, (req, res) => {
   try {
     const images = [
       ...listImageFiles(publicWebDir, publicWebDir, ''),
@@ -320,7 +389,7 @@ app.post('/api/auth/login', (req, res) => {
   try {
     const { username, password } = req.body;
 
-    if (!username || !password) {
+    if (typeof username !== 'string' || !username.trim() || typeof password !== 'string' || !password) {
       return res.status(400).json({ error: 'Username and password required' });
     }
 
@@ -398,8 +467,8 @@ app.post('/api/users', authenticateToken, (req, res) => {
 
     const { username, password, role, active } = req.body;
 
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password required' });
+    if (typeof username !== 'string' || !username.trim() || typeof password !== 'string' || password.length < 12) {
+      return res.status(400).json({ error: 'A username and a password of at least 12 characters are required' });
     }
 
     const users = getUsers();
@@ -451,7 +520,12 @@ app.patch('/api/users/:username', authenticateToken, (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    if (password) users[userIndex].password = bcrypt.hashSync(password, 10);
+    if (password !== undefined) {
+      if (typeof password !== 'string' || password.length < 12) {
+        return res.status(400).json({ error: 'Passwords must be at least 12 characters long' });
+      }
+      users[userIndex].password = bcrypt.hashSync(password, 12);
+    }
     if (role !== undefined) users[userIndex].role = role;
     if (active !== undefined) users[userIndex].active = active;
 
@@ -505,7 +579,7 @@ app.post('/api/auth/change-password', authenticateToken, (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
 
-    if (!currentPassword || !newPassword) {
+    if (typeof currentPassword !== 'string' || !currentPassword || typeof newPassword !== 'string' || newPassword.length < 12) {
       return res.status(400).json({ error: 'Current and new password required' });
     }
 
@@ -520,7 +594,7 @@ app.post('/api/auth/change-password', authenticateToken, (req, res) => {
       return res.status(401).json({ error: 'Current password incorrect' });
     }
 
-    users[userIndex].password = bcrypt.hashSync(newPassword, 10);
+    users[userIndex].password = bcrypt.hashSync(newPassword, 12);
     saveUsers(users);
 
     res.json({ success: true, message: 'Password changed successfully' });
@@ -544,7 +618,7 @@ app.get('/api/products', (req, res) => {
 });
 
 // POST /api/products - Update products (Protected)
-app.post('/api/products', authenticateToken, (req, res) => {
+app.post('/api/products', authenticateToken, requireAdmin, (req, res) => {
   try {
     const { products } = req.body;
     if (!Array.isArray(products)) {
@@ -562,7 +636,8 @@ app.post('/api/products', authenticateToken, (req, res) => {
 app.get('/api/settings', (req, res) => {
   try {
     const settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
-    res.json(settings);
+    const { siteTitle, siteSubtitle, maintenance, siteContent } = settings;
+    res.json({ siteTitle, siteSubtitle, maintenance, siteContent });
   } catch (error) {
     console.error('Error reading settings:', error);
     res.status(500).json({ error: 'Failed to read settings' });
@@ -570,7 +645,7 @@ app.get('/api/settings', (req, res) => {
 });
 
 // POST /api/settings - Update settings (Protected)
-app.post('/api/settings', authenticateToken, (req, res) => {
+app.post('/api/settings', authenticateToken, requireAdmin, (req, res) => {
   try {
     const incoming = req.body || {};
     const currentSettings = readJsonFile(settingsFile, {});
@@ -591,7 +666,7 @@ app.post('/api/settings', authenticateToken, (req, res) => {
 });
 
 // GET /api/orders - Get all orders (Protected)
-app.get('/api/orders', authenticateToken, (req, res) => {
+app.get('/api/orders', authenticateToken, requireAdmin, (req, res) => {
   try {
     const orders = readJsonFile(ordersFile, []);
     res.json({ success: true, orders });
@@ -601,7 +676,7 @@ app.get('/api/orders', authenticateToken, (req, res) => {
   }
 });
 
-app.post('/api/orders/test', authenticateToken, (req, res) => {
+app.post('/api/orders/test', authenticateToken, requireAdmin, (req, res) => {
   try {
     const orders = readJsonFile(ordersFile, []);
     const timestamp = Date.now();
@@ -638,7 +713,7 @@ app.post('/api/orders/test', authenticateToken, (req, res) => {
   }
 });
 
-app.patch('/api/orders/:orderId', authenticateToken, (req, res) => {
+app.patch('/api/orders/:orderId', authenticateToken, requireAdmin, (req, res) => {
   try {
     const orderId = String(req.params.orderId || '').trim();
     if (!orderId) {
@@ -668,7 +743,7 @@ app.patch('/api/orders/:orderId', authenticateToken, (req, res) => {
   }
 });
 
-app.delete('/api/orders/:orderId', authenticateToken, (req, res) => {
+app.delete('/api/orders/:orderId', authenticateToken, requireAdmin, (req, res) => {
   try {
     const orderId = String(req.params.orderId || '').trim();
     if (!orderId) {
@@ -689,7 +764,7 @@ app.delete('/api/orders/:orderId', authenticateToken, (req, res) => {
   }
 });
 
-app.delete('/api/orders', authenticateToken, (req, res) => {
+app.delete('/api/orders', authenticateToken, requireAdmin, (req, res) => {
   try {
     writeJsonFile(ordersFile, []);
     res.json({ success: true, message: 'Alle Bestellungen wurden gelöscht' });
@@ -700,7 +775,7 @@ app.delete('/api/orders', authenticateToken, (req, res) => {
 });
 
 // Bookkeeping expenses API
-app.get('/api/expenses', authenticateToken, (req, res) => {
+app.get('/api/expenses', authenticateToken, requireAdmin, (req, res) => {
   try {
     const expenses = getExpenses();
     res.json({ success: true, expenses });
@@ -710,7 +785,7 @@ app.get('/api/expenses', authenticateToken, (req, res) => {
   }
 });
 
-app.post('/api/expenses', authenticateToken, (req, res) => {
+app.post('/api/expenses', authenticateToken, requireAdmin, (req, res) => {
   try {
     const { supplier, description, amount, date, taxRate, category } = req.body;
     if (!supplier || !amount || !date) {
@@ -740,7 +815,7 @@ app.post('/api/expenses', authenticateToken, (req, res) => {
   }
 });
 
-app.patch('/api/expenses/:expenseId', authenticateToken, (req, res) => {
+app.patch('/api/expenses/:expenseId', authenticateToken, requireAdmin, (req, res) => {
   try {
     const expenseId = String(req.params.expenseId || '').trim();
     const expenses = getExpenses();
@@ -765,7 +840,7 @@ app.patch('/api/expenses/:expenseId', authenticateToken, (req, res) => {
   }
 });
 
-app.delete('/api/expenses/:expenseId', authenticateToken, (req, res) => {
+app.delete('/api/expenses/:expenseId', authenticateToken, requireAdmin, (req, res) => {
   try {
     const expenseId = String(req.params.expenseId || '').trim();
     const expenses = getExpenses();
@@ -781,7 +856,7 @@ app.delete('/api/expenses/:expenseId', authenticateToken, (req, res) => {
   }
 });
 
-app.get('/api/bookkeeping/summary', authenticateToken, (req, res) => {
+app.get('/api/bookkeeping/summary', authenticateToken, requireAdmin, (req, res) => {
   try {
     const orders = readJsonFile(ordersFile, []);
     const expenses = getExpenses();
@@ -820,7 +895,7 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('de-DE');
 };
 
-app.get('/api/bookkeeping/export-datev', authenticateToken, (req, res) => {
+app.get('/api/bookkeeping/export-datev', authenticateToken, requireAdmin, (req, res) => {
   try {
     const orders = readJsonFile(ordersFile, []);
     const expenses = getExpenses();
@@ -836,7 +911,7 @@ app.get('/api/bookkeeping/export-datev', authenticateToken, (req, res) => {
   }
 });
 
-app.get('/api/bookkeeping/cashbook', authenticateToken, (req, res) => {
+app.get('/api/bookkeeping/cashbook', authenticateToken, requireAdmin, (req, res) => {
   try {
     const orders = readJsonFile(ordersFile, []);
     const expenses = getExpenses();
@@ -872,7 +947,7 @@ app.get('/api/bookkeeping/cashbook', authenticateToken, (req, res) => {
   }
 });
 
-app.get('/api/bookkeeping/export-cashbook', authenticateToken, (req, res) => {
+app.get('/api/bookkeeping/export-cashbook', authenticateToken, requireAdmin, (req, res) => {
   try {
     const orders = readJsonFile(ordersFile, []);
     const expenses = getExpenses();
@@ -965,7 +1040,7 @@ app.get('/api/bookkeeping/export-cashbook', authenticateToken, (req, res) => {
 });
 
 // GET /api/orders/:orderId/invoice - Generate PDF invoice
-app.get('/api/orders/:orderId/invoice', (req, res) => {
+app.get('/api/orders/:orderId/invoice', authenticateToken, requireAdmin, (req, res) => {
   try {
     const orderId = String(req.params.orderId || '').trim();
     if (!orderId) {
@@ -1031,7 +1106,7 @@ app.get('/api/orders/:orderId/invoice', (req, res) => {
 });
 
 // GET /api/all - Get all data (Protected for admin)
-app.get('/api/all', authenticateToken, (req, res) => {
+app.get('/api/all', authenticateToken, requireAdmin, (req, res) => {
   try {
     const products = readJsonFile(productsFile, []);
     const settings = readJsonFile(settingsFile, {});
@@ -1121,8 +1196,17 @@ function generateProductPages(products) {
 function createMaintenancePage(maintenance) {
   const filePath = path.join(publicWebDir, 'wartung.html');
   const title = 'Wartung';
-  const message = maintenance?.message || 'Wartungsarbeiten. In Kürze sind wir wieder für Sie da.';
-  const availableAt = maintenance?.availableAt ? `<p>Wieder erreichbar ab: <strong>${maintenance.availableAt}</strong></p>` : '';
+  const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[character]);
+  const message = escapeHtml(maintenance?.message || 'Wartungsarbeiten. In Kürze sind wir wieder für Sie da.');
+  const availableAt = maintenance?.availableAt
+    ? `<p>Wieder erreichbar ab: <strong>${escapeHtml(maintenance.availableAt)}</strong></p>`
+    : '';
   const content = `<!DOCTYPE html>
 <html lang="de">
 <head>
@@ -1151,7 +1235,7 @@ function createMaintenancePage(maintenance) {
 }
 
 // POST /api/all - Save all data (Protected)
-app.post('/api/all', authenticateToken, (req, res) => {
+app.post('/api/all', authenticateToken, requireAdmin, (req, res) => {
   try {
     let { products, categories, discounts, siteTitle, siteSubtitle, maintenance, invoiceDetails } = req.body;
 
@@ -1205,12 +1289,27 @@ app.post('/api/all', authenticateToken, (req, res) => {
   }
 });
 
-app.post('/api/upload', authenticateToken, upload.array('images', 12), (req, res) => {
+app.post('/api/upload', authenticateToken, requireAdmin, upload.array('images', 12), (req, res) => {
   try {
     if (!req.files || !req.files.length) {
       return res.status(400).json({ error: 'No files uploaded' });
     }
-    const fileNames = req.files.map(file => file.filename);
+    const verifiedFiles = req.files.map(file => {
+      const imageExtension = getImageExtension(fs.readFileSync(file.path));
+      const declaredExtension = path.extname(file.originalname).toLowerCase();
+      const expectedExtension = declaredExtension === '.jpeg' ? '.jpg' : declaredExtension;
+      return { file, imageExtension, expectedExtension };
+    });
+    if (verifiedFiles.some(({ imageExtension, expectedExtension }) => !imageExtension || imageExtension !== expectedExtension)) {
+      req.files.forEach(file => fs.unlinkSync(file.path));
+      return res.status(400).json({ error: 'The uploaded file content does not match an allowed image format.' });
+    }
+
+    const fileNames = verifiedFiles.map(({ file, imageExtension }) => {
+      const filename = `${path.basename(file.filename, '.upload')}${imageExtension}`;
+      fs.renameSync(file.path, path.join(uploadsDir, filename));
+      return filename;
+    });
     res.json({ success: true, files: fileNames });
   } catch (error) {
     console.error('Upload error:', error);
@@ -1231,7 +1330,4 @@ app.listen(PORT, () => {
   console.log(`✓ Server running on http://localhost:${PORT}`);
   console.log(`✓ Admin Console: http://localhost:${PORT}/admin.html`);
   console.log(`✓ Health Check: http://localhost:${PORT}/health`);
-  console.log(`✓ Users:`);
-  console.log(`  - jamie / jamielee.1o (admin)`);
-  console.log(`  - alfred / alfred (admin)`);
 });

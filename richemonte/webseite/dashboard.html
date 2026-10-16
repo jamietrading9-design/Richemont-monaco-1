@@ -76,6 +76,30 @@
       gap: 12px;
     }
 
+    button.nav-toggle {
+      display: none !important;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px !important;
+      padding: 8px 13px !important;
+      border: 1px solid #353a37 !important;
+      border-radius: 8px !important;
+      background: transparent !important;
+      color: #fff !important;
+      font: inherit !important;
+      font-size: 10px !important;
+      font-weight: 600 !important;
+      letter-spacing: 0.1em !important;
+      text-transform: none !important;
+      cursor: pointer;
+    }
+
+    button.nav-toggle:hover {
+      border-color: var(--admin-accent) !important;
+      background: var(--admin-accent) !important;
+      color: #17130d !important;
+    }
+
     .btn-header {
       padding: 6px 14px;
       font-size: 10px;
@@ -401,51 +425,670 @@
         font-size: 20px;
       }
     }
+
+    :root {
+      color-scheme: dark;
+      --admin-bg: #080909;
+      --admin-surface: #101212;
+      --admin-border: #242827;
+      --admin-accent: #fff;
+    }
+
+    body {
+      min-width: 320px;
+      padding-top: 72px;
+      background: var(--admin-bg);
+      color: #f5f3ef;
+      display: block;
+    }
+
+    header {
+      height: 72px;
+      padding: 0 32px;
+      background: rgba(12, 14, 13, 0.96);
+      border-bottom-color: var(--admin-border);
+      backdrop-filter: blur(16px);
+    }
+
+    .header-brand {
+      gap: 5px;
+      font-size: 13px;
+    }
+
+    .header-brand .brand-name {
+      font-size: 14px;
+      letter-spacing: 0.18em;
+    }
+
+    .header-brand .brand-line {
+      width: 100%;
+      background: var(--admin-accent);
+    }
+
+    .header-user {
+      margin-left: auto;
+      margin-right: 20px;
+      color: #d7d9d7;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .btn-header,
+    .btn {
+      min-height: 40px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border-color: #353a37;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+    }
+
+    .btn-header:hover,
+    .nav-toggle:hover,
+    .btn:hover {
+      border-color: var(--admin-accent);
+      background: var(--admin-accent);
+      color: #17130d;
+    }
+
+    .btn-header.danger,
+    .btn.danger {
+      border-color: #573434;
+      color: #ff9999;
+    }
+
+    .btn-header.danger:hover,
+    .btn.danger:hover {
+      border-color: #ff9999;
+      background: #ff9999;
+      color: #1b0c0c;
+    }
+
+    .container {
+      display: block;
+      width: 100%;
+      margin-top: 0;
+      min-height: calc(100vh - 72px);
+    }
+
+    .nav-group {
+      margin-bottom: 18px;
+    }
+
+    .nav-group-label {
+      display: block;
+      padding: 10px 14px 7px;
+      color: #777e7a;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .nav-search-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      padding: 0 4px 14px;
+      background: #0c0e0d;
+    }
+
+    .nav-search {
+      min-height: 40px;
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--admin-border);
+      border-radius: 8px;
+      background: #080a09;
+      color: #fff;
+      font: inherit;
+      font-size: 12px;
+    }
+
+    .nav-search:focus,
+    .quick-search:focus {
+      outline: none;
+      border-color: var(--admin-accent);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-item[hidden],
+    .nav-group[hidden] {
+      display: none !important;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 12px;
+    }
+
+    .toolbar .field {
+      max-width: 420px;
+    }
+
+    .toolbar-count {
+      color: #a2a7a4;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .overview-stat {
+      min-height: 112px;
+      padding: 20px;
+      border: 1px solid var(--admin-border);
+      border-radius: 12px;
+      background: #0c0e0d;
+    }
+
+    .overview-stat-label {
+      color: #a2a7a4;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .overview-stat-value {
+      display: block;
+      margin-top: 12px;
+      font-size: 28px;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .quick-action {
+      min-height: 86px;
+      padding: 16px;
+      border: 1px solid var(--admin-border);
+      border-radius: 10px;
+      background: #0b0d0c;
+      color: #fff;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.18s ease, border-color 0.18s ease;
+    }
+
+    .quick-action:hover {
+      border-color: #707773;
+      background: #151816;
+    }
+
+    .quick-action strong,
+    .quick-action span {
+      display: block;
+    }
+
+    .quick-action strong {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .quick-action span {
+      margin-top: 7px;
+      color: #a2a7a4;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    nav {
+      width: 250px;
+      top: 72px;
+      padding: 22px 14px 32px;
+      background: #0c0e0d;
+      border-right-color: var(--admin-border);
+      scrollbar-width: thin;
+      scrollbar-color: #343936 transparent;
+    }
+
+    nav a {
+      margin: 2px 0;
+      padding: 11px 14px;
+      border-left: 2px solid transparent;
+      border-radius: 0 8px 8px 0;
+      color: #a2a7a4;
+      font-size: 11px;
+      letter-spacing: 0.07em;
+      text-transform: none;
+      transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+    }
+
+    nav a:hover,
+    nav a.active {
+      border-left-color: var(--admin-accent);
+      background: #191b19;
+      color: #fff;
+    }
+
+    main {
+      width: calc(100% - 250px);
+      min-width: 0;
+      height: calc(100vh - 72px);
+      margin-left: 250px;
+      padding: clamp(24px, 3vw, 44px);
+    }
+
+    #adminContent > section {
+      width: 100%;
+      min-width: 0;
+    }
+
+    #adminContent .card,
+    #adminContent form,
+    #adminContent .grid,
+    #adminContent .grid-2,
+    #adminContent .form-group {
+      min-width: 0;
+    }
+
+    #adminContent .field {
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .page-title {
+      margin-bottom: 8px;
+      font-size: clamp(24px, 3vw, 32px);
+      font-weight: 500;
+      letter-spacing: -0.035em;
+      text-transform: none;
+    }
+
+    .page-subtitle {
+      margin-bottom: 28px;
+      color: #a0a5a2;
+      font-size: 13px;
+      letter-spacing: 0;
+      line-height: 1.6;
+    }
+
+    .card {
+      margin-bottom: 20px;
+      padding: clamp(18px, 2vw, 26px);
+      border: 1px solid var(--admin-border);
+      border-radius: 14px;
+      background: var(--admin-surface);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    .card-title {
+      margin-bottom: 20px;
+      font-size: 12px;
+      letter-spacing: 0.13em;
+    }
+
+    .label {
+      color: #a6aca8;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+    }
+
+    .field {
+      min-height: 42px;
+      border-color: #303633;
+      border-radius: 8px;
+      background: #0a0c0b;
+    }
+
+    .field:focus {
+      border-color: var(--admin-accent);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+    }
+
+    textarea.field {
+      min-height: 100px;
+    }
+
+    th {
+      background: #0b0d0c;
+      color: #a5aaa7;
+    }
+
+    th,
+    td {
+      padding: 13px 12px;
+      border-bottom-color: #252927;
+      line-height: 1.5;
+    }
+
+    tr:hover {
+      background: #151816;
+    }
+
+    .alert {
+      border: 1px solid var(--admin-border);
+      border-left: 3px solid #707773;
+      border-radius: 8px;
+    }
+
+    .alert.success {
+      border-left-color: #79bd87;
+      color: #b7e8bf;
+    }
+
+    .alert.error {
+      border-left-color: #ef7777;
+      color: #ffaaaa;
+    }
+
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+      outline: 2px solid var(--admin-accent);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 960px) {
+      header {
+        height: 72px;
+        padding: 0 20px;
+        flex-direction: row;
+        gap: 10px;
+      }
+
+      .container {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        min-width: 0;
+      }
+
+      button.nav-toggle {
+        display: inline-flex !important;
+      }
+
+      nav {
+        position: absolute;
+        top: 0;
+        bottom: auto;
+        left: 0;
+        z-index: 1100;
+        display: none;
+        width: 100%;
+        height: auto;
+        max-height: calc(100vh - 72px);
+        padding: 16px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-content: start;
+        gap: 10px;
+        border-right: 0;
+        border-bottom: 1px solid var(--admin-border);
+        background: rgba(12, 14, 13, 0.98);
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
+      }
+
+      .nav-search-wrap {
+        grid-column: 1 / -1;
+      }
+
+      nav.is-open {
+        display: grid;
+      }
+
+      .nav-group-label {
+        padding: 6px 10px 8px;
+      }
+
+      nav a {
+        width: 100%;
+        margin: 2px 0;
+        padding: 10px;
+        border: 0;
+        border-left: 2px solid transparent;
+        border-radius: 0 7px 7px 0;
+        white-space: normal;
+      }
+
+      nav a:hover,
+      nav a.active {
+        border-left-color: var(--admin-accent);
+      }
+
+      main {
+        width: 100%;
+        height: auto;
+        min-height: calc(100vh - 124px);
+        margin-left: 0;
+      }
+
+      .header-actions {
+        width: auto;
+      }
+    }
+
+    @media (max-width: 600px) {
+      header {
+        height: 64px;
+        padding: 0 14px;
+        gap: 10px;
+      }
+
+      .header-brand .brand-name {
+        font-size: 11px;
+        letter-spacing: 0.13em;
+      }
+
+      .header-brand .brand-line {
+        width: 100%;
+      }
+
+      .header-user {
+        display: none;
+      }
+
+      .header-actions {
+        gap: 7px;
+      }
+
+      .btn-header {
+        min-height: 36px;
+        padding: 8px 10px;
+        font-size: 9px;
+        letter-spacing: 0.06em;
+      }
+
+      .container {
+        margin-top: 0;
+      }
+
+      body {
+        padding-top: 64px;
+      }
+
+      nav {
+        max-height: calc(100vh - 64px);
+        grid-template-columns: minmax(0, 1fr);
+        gap: 4px;
+      }
+
+      .nav-search-wrap {
+        grid-column: auto;
+      }
+
+      main {
+        min-height: calc(100vh - 112px);
+        padding: 24px 16px 36px;
+      }
+
+      .page-title {
+        font-size: 25px;
+      }
+
+      .page-subtitle {
+        margin-bottom: 20px;
+      }
+
+      .grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+      }
+
+      .toolbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .toolbar .field {
+        max-width: none;
+      }
+
+      .card-title {
+        align-items: flex-start;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .btn-group {
+        gap: 8px;
+      }
+
+      .btn-group .btn {
+        flex: 1 1 auto;
+      }
+
+      th,
+      td {
+        padding: 10px 9px;
+        font-size: 11px;
+      }
+    }
   </style>
 </head>
 <body>
   <header>
-    <a href="/" class="header-brand">
+    <a href="/" class="header-brand" aria-label="Zur Website">
       <span class="brand-name">Richemont-Monaco</span>
       <span class="brand-line"></span>
     </a>
     <div class="header-user" id="userName">Admin</div>
+    <button class="nav-toggle" id="navToggle" type="button" aria-controls="adminNavigation" aria-expanded="false" aria-label="Navigation ein- oder ausblenden">
+      Menü
+    </button>
     <div class="header-actions">
-      <a href="/" class="btn-header" target="_blank">Website</a>
       <button class="btn-header danger" onclick="logout()">Abmelden</button>
     </div>
   </header>
 
   <div class="container">
-    <nav>
-      <a class="nav-item active" href="#products" data-section="products">Produkte</a>
-      <a class="nav-item" href="#orders" data-section="orders">Bestellungen</a>
-      <a class="nav-item" href="#buch-summary" data-buch-section="buch-summary">Übersicht</a>
-      <a class="nav-item" href="#buch-orders" data-buch-section="buch-orders">Rechnungen</a>
-      <a class="nav-item" href="#buch-expenses" data-buch-section="buch-expenses">Ausgaben</a>
-      <a class="nav-item" href="#buch-cashbook" data-buch-section="buch-cashbook">Kassenbuch</a>
-      <a class="nav-item" href="#buch-users" data-buch-section="buch-users">Personal</a>
-      <a class="nav-item" href="#buch-settings" data-buch-section="buch-settings">Einstellungen</a>
-      <a class="nav-item" href="#buch-password" data-buch-section="buch-password">Passwort ändern</a>
-      <a class="nav-item" href="#images" data-section="images">Bilder</a>
-      <a class="nav-item" href="#maintenance" data-section="maintenance">Wartung</a>
-      <a class="nav-item" href="#users" data-section="users">Admin Benutzer</a>
-      <a class="nav-item" href="#account" data-section="account">Account</a>
-      <a class="nav-item" href="#categories" data-section="categories">Kategorien</a>
+    <nav id="adminNavigation" aria-label="Admin-Navigation">
+      <div class="nav-search-wrap">
+        <input id="navSearch" class="nav-search" type="search" placeholder="Menü durchsuchen…" aria-label="Admin-Menü durchsuchen">
+      </div>
+      <div class="nav-group" role="group" aria-label="Übersicht">
+        <span class="nav-group-label">Übersicht</span>
+        <a class="nav-item active" href="#overview" data-section="overview">Start & Kennzahlen</a>
+      </div>
+      <div class="nav-group" role="group" aria-label="Shop">
+        <span class="nav-group-label">Shop</span>
+        <a class="nav-item" href="#products" data-section="products">Produktkatalog</a>
+        <a class="nav-item" href="#categories" data-section="categories">Produktkategorien</a>
+        <a class="nav-item" href="#orders" data-section="orders">Bestellungen & Versand</a>
+      </div>
+      <div class="nav-group" role="group" aria-label="Buchhaltung">
+        <span class="nav-group-label">Buchhaltung</span>
+        <a class="nav-item" href="#buch-summary" data-section="buch-summary">Finanzübersicht</a>
+        <a class="nav-item" href="#buch-orders" data-section="buch-orders">Rechnungsübersicht</a>
+        <a class="nav-item" href="#buch-expenses" data-section="buch-expenses">Betriebsausgaben</a>
+        <a class="nav-item" href="#buch-cashbook" data-section="buch-cashbook">Kassenbuch</a>
+        <a class="nav-item" href="#buch-settings" data-section="buch-settings">Buchhaltungsdaten</a>
+      </div>
+      <div class="nav-group" role="group" aria-label="Medien und Website">
+        <span class="nav-group-label">Medien & Website</span>
+        <a class="nav-item" href="#images" data-section="images">Bilder & Medien</a>
+        <a class="nav-item" href="#maintenance" data-section="maintenance">Wartung & Startseite</a>
+      </div>
+      <div class="nav-group" role="group" aria-label="Benutzer und Konto">
+        <span class="nav-group-label">Benutzer & Konto</span>
+        <a class="nav-item" href="#users" data-section="users">Benutzer & Zugänge</a>
+        <a class="nav-item" href="#account" data-section="account">Mein Konto & Rechnungsdaten</a>
+      </div>
     </nav>
 
-    <main>
+    <main id="adminContent">
       <div id="alert" class="alert"></div>
+
+      <section id="overview" class="section-hidden active">
+        <h1 class="page-title">Admin-Übersicht</h1>
+        <p class="page-subtitle">Wichtige Bereiche und aktuelle Kennzahlen auf einen Blick.</p>
+
+        <div class="overview-grid" aria-label="Aktuelle Kennzahlen">
+          <div class="overview-stat">
+            <span class="overview-stat-label">Produkte</span>
+            <strong class="overview-stat-value" id="overviewProducts">–</strong>
+          </div>
+          <div class="overview-stat">
+            <span class="overview-stat-label">Bestellungen</span>
+            <strong class="overview-stat-value" id="overviewOrders">–</strong>
+          </div>
+          <div class="overview-stat">
+            <span class="overview-stat-label">Noch offen</span>
+            <strong class="overview-stat-value" id="overviewOpenOrders">–</strong>
+          </div>
+          <div class="overview-stat">
+            <span class="overview-stat-label">Kategorien</span>
+            <strong class="overview-stat-value" id="overviewCategories">–</strong>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Direkt zu einem Bereich</h2>
+          <div class="quick-actions">
+            <button type="button" class="quick-action" data-go-section="products">
+              <strong>Produktkatalog</strong><span>Artikel, Preise und Bilder verwalten</span>
+            </button>
+            <button type="button" class="quick-action" data-go-section="orders">
+              <strong>Bestellungen & Versand</strong><span>Bestellstatus und Tracking pflegen</span>
+            </button>
+            <button type="button" class="quick-action" data-go-section="buch-summary">
+              <strong>Finanzübersicht</strong><span>Umsatz und Ausgaben prüfen</span>
+            </button>
+            <button type="button" class="quick-action" data-go-section="buch-expenses">
+              <strong>Ausgabe erfassen</strong><span>Neue Betriebsausgabe eintragen</span>
+            </button>
+            <button type="button" class="quick-action" data-go-section="images">
+              <strong>Bilder & Medien</strong><span>Produktbilder hochladen und auswählen</span>
+            </button>
+            <button type="button" class="quick-action" data-go-section="maintenance">
+              <strong>Website bearbeiten</strong><span>Startseite und Wartungseinstellungen</span>
+            </button>
+          </div>
+        </div>
+      </section>
 
       <!-- PRODUCTS -->
       <section id="products" class="section-hidden active">
         <h1 class="page-title">Produkte</h1>
-        <p class="page-subtitle">Verwalten Sie Ihre Produktkatalog</p>
+        <p class="page-subtitle">Verwalten Sie Ihren Produktkatalog.</p>
 
         <div class="card">
           <div class="card-title">
             <span>Alle Produkte</span>
             <button class="btn" onclick="openProductForm()">+ Neues Produkt</button>
+          </div>
+          <div class="toolbar">
+            <input id="productSearchInput" class="field quick-search" type="search" placeholder="Name oder Kategorie suchen…" aria-label="Produktliste durchsuchen">
+            <span id="productCount" class="toolbar-count" aria-live="polite"></span>
           </div>
           <div style="overflow-x: auto;">
             <table>
@@ -520,7 +1163,7 @@
         </div>
       </section>
 
-      <!-- CATEGORIES -->
+      <!-- ORDERS -->
       <section id="orders" class="section-hidden">
         <h1 class="page-title">Bestellungen</h1>
         <p class="page-subtitle">Echtzeitübersicht aller eingegangenen Bestellungen</p>
@@ -575,7 +1218,6 @@
               <div id="buchhaltungOpenOrders" style="font-size:28px; margin-top:12px;">0</div>
             </div>
           </div>
-
           <div class="card" style="margin-top:22px;">
             <div class="card-title"><span>Top Bestellungen</span></div>
             <div style="overflow-x:auto;">
@@ -611,7 +1253,6 @@
               </table>
             </div>
           </div>
-        </div>
 
       </section>
 
@@ -636,7 +1277,6 @@
               </table>
             </div>
           </div>
-        </div>
 
       </section>
 
@@ -697,7 +1337,6 @@
               </table>
             </div>
           </div>
-        </div>
 
       </section>
 
@@ -727,72 +1366,14 @@
               </table>
             </div>
           </div>
-        </div>
-
-      </section>
-
-      <section id="buch-users" class="section-hidden">
-        <h1 class="page-title">Personal</h1>
-        <p class="page-subtitle">Verwalten Sie Buchhaltungs-Benutzer.</p>
-        <div class="card">
-            <div class="card-title"><span>Buchhaltungs-Benutzer</span></div>
-            <form id="buchUserForm">
-              <div class="grid grid-2">
-                <div class="form-group">
-                  <label class="label">Benutzername</label>
-                  <input type="text" id="buchNewUserName" class="field" required>
-                </div>
-                <div class="form-group">
-                  <label class="label">Passwort</label>
-                  <input type="password" id="buchNewUserPassword" class="field" required>
-                </div>
-              </div>
-              <div class="grid grid-2">
-                <div class="form-group">
-                  <label class="label">Rolle</label>
-                  <select id="buchNewUserRole" class="field">
-                    <option value="admin">Admin</option>
-                    <option value="user">User</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label class="label">Aktiv</label>
-                  <select id="buchNewUserActive" class="field">
-                    <option value="true">Ja</option>
-                    <option value="false">Nein</option>
-                  </select>
-                </div>
-              </div>
-              <div class="btn-group">
-                <button type="submit" class="btn">Benutzer hinzufügen</button>
-              </div>
-            </form>
-          </div>
-          <div class="card" style="margin-top:22px;">
-            <div class="card-title"><span>Bestehende Buchhaltungs-Benutzer</span></div>
-            <div style="overflow-x:auto;">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Benutzer</th>
-                    <th>Rolle</th>
-                    <th>Aktiv</th>
-                    <th>Aktion</th>
-                  </tr>
-                </thead>
-                <tbody id="buchUsersTable"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
 
       </section>
 
       <section id="buch-settings" class="section-hidden">
-        <h1 class="page-title">Einstellungen</h1>
-        <p class="page-subtitle">Konfigurieren Sie Buchhaltungsparameter.</p>
+        <h1 class="page-title">Buchhaltungsdaten</h1>
+        <p class="page-subtitle">Hinterlegen Sie die Firmen- und Bankangaben für Ihre Buchhaltung.</p>
         <div class="card">
-            <div class="card-title"><span>Einstellungen</span></div>
+            <div class="card-title"><span>Firmen- und Bankangaben</span></div>
             <form id="buchSettingsForm">
               <div class="form-group">
                 <label class="label">Firmenname</label>
@@ -808,51 +1389,20 @@
                   <input type="text" id="buchAccountingIban" class="field" placeholder="DE00 0000 0000 0000 0000 00">
                 </div>
               </div>
-              <div class="grid grid-2">
-                <div class="form-group">
-                  <label class="label">BIC</label>
-                  <input type="text" id="buchAccountingBic" class="field" placeholder="MOCBDEFFXXX">
-                </div>
-                <div class="form-group"></div>
+              <div class="form-group">
+                <label class="label">BIC</label>
+                <input type="text" id="buchAccountingBic" class="field" placeholder="MOCBDEFFXXX">
               </div>
               <div class="btn-group">
                 <button type="submit" class="btn">Einstellungen speichern</button>
               </div>
             </form>
           </div>
-        </div>
 
       </section>
-
-      <section id="buch-password" class="section-hidden">
-        <h1 class="page-title">Passwort ändern</h1>
-        <p class="page-subtitle">Sicherheit für Ihr Buchhaltungs-Konto.</p>
-        <div class="card">
-            <div class="card-title"><span>Passwort ändern</span></div>
-            <form id="buchPasswordForm">
-              <div class="form-group">
-                <label class="label">Aktuelles Passwort</label>
-                <input type="password" id="buchCurrentPassword" class="field" required>
-              </div>
-              <div class="form-group">
-                <label class="label">Neues Passwort</label>
-                <input type="password" id="buchNewPassword" class="field" required>
-              </div>
-              <div class="form-group">
-                <label class="label">Neues Passwort wiederholen</label>
-                <input type="password" id="buchConfirmPassword" class="field" required>
-              </div>
-              <div class="btn-group">
-                <button type="submit" class="btn">Passwort ändern</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </section>
-
       <section id="users" class="section-hidden">
-        <h1 class="page-title">Benutzer</h1>
-        <p class="page-subtitle">Neue Benutzer anlegen und bestehende Nutzer verwalten.</p>
+        <h1 class="page-title">Benutzer & Zugänge</h1>
+        <p class="page-subtitle">Legen Sie Teammitglieder an und verwalten Sie ihre Rollen und Zugänge.</p>
 
         <div class="card">
           <h2 class="card-title">Neuen Benutzer erstellen</h2>
@@ -1027,8 +1577,8 @@
       </section>
 
       <section id="account" class="section-hidden">
-        <h1 class="page-title">Account</h1>
-        <p class="page-subtitle">Sichern Sie Ihr Admin-Konto und ändern Sie Ihr Passwort.</p>
+        <h1 class="page-title">Mein Konto & Rechnungsdaten</h1>
+        <p class="page-subtitle">Prüfen Sie Ihr Konto, aktualisieren Sie Rechnungsangaben und ändern Sie Ihr Passwort.</p>
 
         <div class="card">
           <h2 class="card-title">Meine Kontoinformationen</h2>
@@ -1132,13 +1682,24 @@
     let invoiceDetails = { companyName: '', address: '', email: '', phone: '', bankName: '', iban: '', bic: '', website: '', footerText: '' };
     let editingProductIndex = -1;
 
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[character]);
+    }
+
     // Init
+    setupNav();
     window.addEventListener('load', async () => {
-      await checkAuth();
-      setupNav();
       setupForms();
-      loadData();
       initSectionFromHash();
+      if (await checkAuth()) {
+        loadData();
+      }
     });
 
     async function checkAuth() {
@@ -1151,7 +1712,7 @@
 
       if (!token) {
         window.location.href = '/admin.html';
-        return;
+        return false;
       }
 
       try {
@@ -1160,22 +1721,33 @@
         document.getElementById('accountUsername').textContent = me.username || 'Admin';
         document.getElementById('accountRole').textContent = me.role || 'Admin';
         localStorage.setItem('adminUser', JSON.stringify({ username: me.username }));
-        // Show products as default
-        showSection('products');
+        return true;
       } catch (error) {
         localStorage.removeItem('adminToken');
         localStorage.removeItem('richemont_admin_token');
         localStorage.removeItem('adminUser');
         window.location.href = '/admin.html';
+        return false;
       }
     }
 
     function showSection(sectionId) {
       document.querySelectorAll('section.section-hidden').forEach(s => s.classList.remove('active'));
-      const target = sectionId && document.getElementById(sectionId) ? sectionId : 'products';
+      const sectionAliases = {
+        'buch-users': 'users',
+        'buch-password': 'account'
+      };
+      const requestedSection = sectionAliases[sectionId] || sectionId;
+      const target = requestedSection && document.getElementById(requestedSection) ? requestedSection : 'overview';
       document.getElementById(target).classList.add('active');
       document.querySelectorAll('.nav-item').forEach(i => {
-        i.classList.toggle('active', i.dataset.section === target || i.dataset.buchSection === target);
+        const isActive = i.dataset.section === target || i.dataset.buchSection === target;
+        i.classList.toggle('active', isActive);
+        if (isActive) {
+          i.setAttribute('aria-current', 'page');
+        } else {
+          i.removeAttribute('aria-current');
+        }
       });
       if (window.location.hash !== `#${target}`) {
         history.replaceState(null, '', `#${target}`);
@@ -1183,21 +1755,57 @@
     }
 
     function setupNav() {
+      const navigation = document.getElementById('adminNavigation');
+      const menuToggle = document.getElementById('navToggle');
+      menuToggle.addEventListener('click', () => {
+        const isOpen = navigation.classList.toggle('is-open');
+        menuToggle.setAttribute('aria-expanded', String(isOpen));
+      });
+
       document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', (e) => {
           e.preventDefault();
-          if (item.dataset.buchSection) {
-            showSection(item.dataset.buchSection);
-          } else if (item.dataset.section) {
-            showSection(item.dataset.section);
-          }
+          showSection(item.dataset.section);
+          searchInput.value = '';
+          filterNavigation('');
+          navigation.classList.remove('is-open');
+          menuToggle.setAttribute('aria-expanded', 'false');
         });
       });
-    }
 
-    function showBuchSection(sectionId) {
-      // Redirect to showSection for consistency
-      showSection(sectionId);
+      const searchInput = document.getElementById('navSearch');
+      const filterNavigation = query => {
+        const normalizedQuery = query.trim().toLocaleLowerCase('de');
+        navigation.querySelectorAll('.nav-group').forEach(group => {
+          const links = Array.from(group.querySelectorAll('.nav-item'));
+          const visibleLinks = links.filter(link => {
+            const matches = !normalizedQuery || link.textContent.trim().toLocaleLowerCase('de').includes(normalizedQuery);
+            link.hidden = !matches;
+            return matches;
+          });
+          group.hidden = visibleLinks.length === 0;
+        });
+      };
+      searchInput.addEventListener('input', () => filterNavigation(searchInput.value));
+      document.querySelectorAll('[data-go-section]').forEach(button => {
+        button.addEventListener('click', () => showSection(button.dataset.goSection));
+      });
+      document.getElementById('productSearchInput').addEventListener('input', renderProductsTable);
+      document.getElementById('orderSearchInput').addEventListener('input', renderOrdersTable);
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && searchInput.value) {
+          searchInput.value = '';
+          filterNavigation('');
+          searchInput.blur();
+          return;
+        }
+        if (event.key === 'Escape' && navigation.classList.contains('is-open')) {
+          navigation.classList.remove('is-open');
+          menuToggle.setAttribute('aria-expanded', 'false');
+          menuToggle.focus();
+        }
+      });
     }
 
     function setupForms() {
@@ -1208,15 +1816,11 @@
         e.preventDefault();
         await createExpense();
       });
-      document.getElementById('buchUserForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await createBuchUser();
-      });
       document.getElementById('buchSettingsForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         await saveSettings();
       });
-      document.getElementById('buchPasswordForm')?.addEventListener('submit', async (e) => {
+      document.getElementById('passwordChangeForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         await changePassword();
       });
@@ -1274,6 +1878,7 @@
         renderBuchOrdersTable();
         renderBuchExpensesTable();
         await Promise.all([imagePromise, userPromise]);
+        renderOverview();
       } catch (e) {
         showAlert('Fehler beim Laden: ' + e.message, 'error');
       }
@@ -1281,14 +1886,7 @@
 
     function initSectionFromHash() {
       const hash = window.location.hash.replace('#', '');
-      if (hash && hash.startsWith('buch-')) {
-        showSection('buchhaltung');
-        showBuchSection(hash);
-      } else if (hash && document.getElementById(hash)) {
-        showSection(hash);
-      } else {
-        showSection('products');
-      }
+      showSection(hash || 'overview');
     }
 
     async function saveAllData() {
@@ -1379,12 +1977,12 @@
       recentOrders.forEach(order => {
         const row = document.createElement('tr');
         row.innerHTML = `
-          <td>${order.id}</td>
-          <td>${order.customer?.name || '-'}</td>
-          <td>${order.customer?.email || '-'}</td>
+          <td>${escapeHtml(order.id)}</td>
+          <td>${escapeHtml(order.customer?.name || '-')}</td>
+          <td>${escapeHtml(order.customer?.email || '-')}</td>
           <td>€ ${Number(order.total || 0).toFixed(2)}</td>
-          <td>${order.status || 'offen'}</td>
-          <td>${order.createdAt ? new Date(order.createdAt).toLocaleDateString('de-DE') : '-'}</td>
+          <td>${escapeHtml(order.status || 'offen')}</td>
+          <td>${escapeHtml(order.createdAt ? new Date(order.createdAt).toLocaleDateString('de-DE') : '-')}</td>
         `;
         orderBody.appendChild(row);
       });
@@ -1403,12 +2001,12 @@
       recentExpenses.forEach(expense => {
         const row = document.createElement('tr');
         row.innerHTML = `
-          <td>${expense.date || '-'}</td>
-          <td>${expense.supplier || '-'}</td>
-          <td>${expense.description || '-'}</td>
+          <td>${escapeHtml(expense.date || '-')}</td>
+          <td>${escapeHtml(expense.supplier || '-')}</td>
+          <td>${escapeHtml(expense.description || '-')}</td>
           <td>€ ${Number(expense.amount || 0).toFixed(2)}</td>
           <td>€ ${Number(expense.taxAmount || 0).toFixed(2)}</td>
-          <td>${expense.category || '-'}</td>
+          <td>${escapeHtml(expense.category || '-')}</td>
         `;
         expenseBody.appendChild(row);
       });
@@ -1451,13 +2049,13 @@
         entries.forEach(entry => {
           const row = document.createElement('tr');
           row.innerHTML = `
-            <td>${entry.type || '-'}</td>
-            <td>${entry.date || '-'}</td>
-            <td>${entry.partner || '-'}</td>
-            <td>${entry.description || '-'}</td>
+            <td>${escapeHtml(entry.type || '-')}</td>
+            <td>${escapeHtml(entry.date || '-')}</td>
+            <td>${escapeHtml(entry.partner || '-')}</td>
+            <td>${escapeHtml(entry.description || '-')}</td>
             <td>€ ${Number(entry.amount || 0).toFixed(2)}</td>
             <td>€ ${Number(entry.tax || 0).toFixed(2)}</td>
-            <td>${entry.category || '-'}</td>
+            <td>${escapeHtml(entry.category || '-')}</td>
           `;
           body.appendChild(row);
         });
@@ -1487,35 +2085,11 @@
       }
     }
 
-    async function createBuchUser() {
-      const username = document.getElementById('buchNewUserName').value.trim();
-      const password = document.getElementById('buchNewUserPassword').value;
-      const role = document.getElementById('buchNewUserRole').value;
-      const active = document.getElementById('buchNewUserActive').value === 'true';
-      if (!username || !password) {
-        showAlert('Benutzername und Passwort sind erforderlich.', 'error');
-        return;
-      }
-      try {
-        const res = await authFetch(`${API_BASE}/users`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password, role, active })
-        });
-        if (!res.success) throw new Error(res.error || 'Fehler beim Anlegen des Benutzers');
-        showAlert('Benutzer angelegt');
-        document.getElementById('buchUserForm').reset();
-        await loadUsers();
-      } catch (e) {
-        showAlert('Fehler beim Anlegen des Benutzers: ' + e.message, 'error');
-      }
-    }
-
     async function changePassword() {
       try {
-        const currentPassword = document.getElementById('buchCurrentPassword').value;
-        const newPassword = document.getElementById('buchNewPassword').value;
-        const confirmPassword = document.getElementById('buchConfirmPassword').value;
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
         if (!currentPassword || !newPassword || !confirmPassword) {
           showAlert('Alle Felder sind erforderlich.', 'error');
           return;
@@ -1531,7 +2105,7 @@
         });
         if (!res.success) throw new Error(res.error || 'Fehler beim Ändern des Passworts');
         showAlert('Passwort erfolgreich geändert');
-        document.getElementById('buchPasswordForm').reset();
+        document.getElementById('passwordChangeForm').reset();
       } catch (e) {
         showAlert('Fehler beim Ändern des Passworts: ' + e.message, 'error');
       }
@@ -1627,24 +2201,40 @@
     // PRODUCTS
     function renderProductsTable() {
       const tbody = document.getElementById('productsTable');
+      const searchTerm = String(document.getElementById('productSearchInput')?.value || '').trim().toLocaleLowerCase('de');
+      const filteredProducts = products
+        .map((product, index) => ({ product, index }))
+        .filter(({ product }) => !searchTerm || `${product.title || ''} ${product.category || ''}`.toLocaleLowerCase('de').includes(searchTerm));
       tbody.innerHTML = '';
-      products.forEach((p, i) => {
+      filteredProducts.forEach(({ product: p, index: i }) => {
         const hasDiscount = p.discountPrice && Number(p.discountPrice) < Number(p.price);
         const discountLabel = hasDiscount ? `€${Number(p.discountPrice).toFixed(2)}` : '–';
         const priceLabel = `€${Number(p.price || 0).toFixed(2)}`;
         const row = document.createElement('tr');
         row.innerHTML = `
-          <td>${p.title}</td>
-          <td>${p.category || '–'}</td>
+          <td>${escapeHtml(p.title)}</td>
+          <td>${escapeHtml(p.category || '–')}</td>
           <td>${priceLabel}</td>
           <td>${discountLabel}</td>
           <td><button class="btn" style="padding: 4px 10px; font-size: 9px;" onclick="editProduct(${i})">Bearbeiten</button></td>
         `;
         tbody.appendChild(row);
       });
-      if (!products.length) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #555; padding: 20px;">Keine Produkte</td></tr>';
+      document.getElementById('productCount').textContent = searchTerm
+        ? `${filteredProducts.length} von ${products.length} Produkten`
+        : `${products.length} Produkte`;
+      if (!filteredProducts.length) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #a2a7a4; padding: 20px;">${products.length ? 'Keine passenden Produkte gefunden.' : 'Noch keine Produkte vorhanden.'}</td></tr>`;
       }
+    }
+
+    function renderOverview() {
+      document.getElementById('overviewProducts').textContent = products.length;
+      document.getElementById('overviewOrders').textContent = orders.length;
+      document.getElementById('overviewOpenOrders').textContent = orders.filter(order =>
+        !['paid', 'bezahlt', 'versendet', 'delivered', 'shipped'].includes(String(order.status || '').toLowerCase())
+      ).length;
+      document.getElementById('overviewCategories').textContent = categories.length;
     }
 
     function openProductForm() {
@@ -1736,10 +2326,10 @@
         const row = document.createElement('tr');
         row.dataset.orderId = order.id;
         row.innerHTML = `
-          <td>${order.id}</td>
-          <td>${order.customer?.name || '–'}</td>
-          <td>${order.customer?.email || '–'}</td>
-          <td>${order.total?.toFixed(2) ?? '0.00'} €</td>
+          <td>${escapeHtml(order.id)}</td>
+          <td>${escapeHtml(order.customer?.name || '–')}</td>
+          <td>${escapeHtml(order.customer?.email || '–')}</td>
+          <td>${Number(order.total || 0).toFixed(2)} €</td>
           <td>
             <select class="field order-status-select">
               <option value="offen" ${order.status === 'offen' ? 'selected' : ''}>offen</option>
@@ -1749,24 +2339,34 @@
             </select>
           </td>
           <td>
-            <input class="field order-tracking-input" type="text" value="${order.trackingNumber || ''}" placeholder="Tracking-Nummer">
+            <input class="field order-tracking-input" type="text" value="${escapeHtml(order.trackingNumber || '')}" placeholder="Tracking-Nummer">
           </td>
           <td>
             <div class="btn-group-inline">
-              <button class="btn" type="button" onclick="saveOrderUpdate('${order.id.replace(/'/g, "\\'")}')">Speichern</button>
-              <button class="btn" type="button" onclick="openInvoice('${order.id.replace(/'/g, "\\'")}')">Öffnen</button>
-              <button class="btn" type="button" onclick="downloadInvoice('${order.id.replace(/'/g, "\\'")}')">Herunterladen</button>
-              <button class="btn" type="button" onclick="confirmDeleteOrder('${order.id.replace(/'/g, "\\'")}')" style="border-color:#b00;">Löschen</button>
+              <button class="btn" type="button" data-order-action="save">Speichern</button>
+              <button class="btn" type="button" data-order-action="open">Öffnen</button>
+              <button class="btn" type="button" data-order-action="download">Herunterladen</button>
+              <button class="btn" type="button" data-order-action="delete" style="border-color:#b00;">Löschen</button>
             </div>
           </td>
           <td>${new Date(order.createdAt).toLocaleString('de-DE')}</td>
         `;
+        row.querySelectorAll('[data-order-action]').forEach(button => {
+          button.addEventListener('click', () => {
+            const orderId = row.dataset.orderId;
+            if (button.dataset.orderAction === 'save') saveOrderUpdate(orderId);
+            if (button.dataset.orderAction === 'open') openInvoice(orderId);
+            if (button.dataset.orderAction === 'download') downloadInvoice(orderId);
+            if (button.dataset.orderAction === 'delete') confirmDeleteOrder(orderId);
+          });
+        });
         tbody.appendChild(row);
       });
     }
 
     async function saveOrderUpdate(orderId) {
-      const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+      const row = Array.from(document.querySelectorAll('#ordersTable tbody tr'))
+        .find(candidate => candidate.dataset.orderId === String(orderId));
       if (!row) {
         showAlert('Bestellung nicht gefunden', 'error');
         return;
@@ -1797,7 +2397,26 @@
     }
 
     async function openInvoice(orderId) {
-      window.open(`${API_BASE}/orders/${encodeURIComponent(orderId)}/invoice`, '_blank');
+      const invoiceWindow = window.open('about:blank', '_blank');
+      if (!invoiceWindow) {
+        showAlert('Bitte erlauben Sie Pop-ups, um die Rechnung zu öffnen.', 'error');
+        return;
+      }
+      invoiceWindow.opener = null;
+      try {
+        const response = await fetch(`${API_BASE}/orders/${encodeURIComponent(orderId)}/invoice`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!response.ok) {
+          throw new Error('Rechnung konnte nicht geladen werden.');
+        }
+        const url = URL.createObjectURL(await response.blob());
+        invoiceWindow.location.href = url;
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      } catch (error) {
+        invoiceWindow.close();
+        showAlert('Rechnung konnte nicht geöffnet werden: ' + error.message, 'error');
+      }
     }
 
     async function downloadInvoice(orderId) {
@@ -1875,7 +2494,7 @@
       tbody.innerHTML = '';
       categories.forEach(c => {
         const row = document.createElement('tr');
-        row.innerHTML = `<td>${c.name}</td><td>${c.description || '–'}</td>`;
+        row.innerHTML = `<td>${escapeHtml(c.name)}</td><td>${escapeHtml(c.description || '–')}</td>`;
         tbody.appendChild(row);
       });
     }
@@ -1897,11 +2516,14 @@
       users.forEach((user) => {
         const row = document.createElement('tr');
         row.innerHTML = `
-          <td>${user.username}</td>
-          <td>${user.role}</td>
+          <td>${escapeHtml(user.username)}</td>
+          <td>${escapeHtml(user.role)}</td>
           <td>${user.active ? 'Ja' : 'Nein'}</td>
-          <td><button class="btn" onclick="deleteUser('${user.username}')">Löschen</button></td>
+          <td><button class="btn" data-delete-username="${escapeHtml(user.username)}">Löschen</button></td>
         `;
+        row.querySelector('[data-delete-username]').addEventListener('click', event => {
+          deleteUser(event.currentTarget.dataset.deleteUsername);
+        });
         tbody.appendChild(row);
       });
     }

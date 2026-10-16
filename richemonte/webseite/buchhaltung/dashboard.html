@@ -220,6 +220,13 @@
 
   <script>
     const tokenKey = 'adminToken';
+    const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[character]);
 
     async function fetchAuth(endpoint, method='GET', body) {
       const token = localStorage.getItem(tokenKey) || localStorage.getItem('richemont_admin_token');
@@ -265,10 +272,35 @@
         const statusOptions = ['offen', 'processing', 'paid'].map(status => `
           <option value="${status}" ${order.status === status ? 'selected' : ''}>${status}</option>
         `).join('');
-        return `<tr><td>${order.id}</td><td>${order.customer?.name || '-'}<br><small>${order.customer?.email || ''}</small></td><td>€${(order.total||0).toFixed(2)}</td><td><select class="field" data-status-id="${order.id}">${statusOptions}</select><br><span class="status ${statusClass}">${order.status || 'offen'}</span></td><td><a href="/api/orders/${order.id}/invoice" target="_blank" class="btn">PDF</a> <button class="btn" data-save="${order.id}">Speichern</button> <button class="btn" data-delete="${order.id}">Löschen</button></td></tr>`;
+        const safeId = escapeHtml(order.id);
+        return `<tr><td>${safeId}</td><td>${escapeHtml(order.customer?.name || '-')}<br><small>${escapeHtml(order.customer?.email || '')}</small></td><td>€${Number(order.total || 0).toFixed(2)}</td><td><select class="field" data-status-id="${safeId}">${statusOptions}</select><br><span class="status ${statusClass}">${escapeHtml(order.status || 'offen')}</span></td><td><button type="button" class="btn" data-invoice="${encodeURIComponent(String(order.id))}">PDF</button> <button class="btn" data-save="${safeId}">Speichern</button> <button class="btn" data-delete="${safeId}">Löschen</button></td></tr>`;
       }).join('')}</tbody>`;
       document.getElementById('ordersTable').innerHTML = '';
       document.getElementById('ordersTable').appendChild(table);
+      table.querySelectorAll('button[data-invoice]').forEach(button => {
+        button.addEventListener('click', async () => {
+          const invoiceWindow = window.open('about:blank', '_blank');
+          if (!invoiceWindow) {
+            alert('Bitte erlauben Sie Pop-ups, um die Rechnung zu öffnen.');
+            return;
+          }
+          invoiceWindow.opener = null;
+          try {
+            const orderId = decodeURIComponent(button.dataset.invoice);
+            const token = localStorage.getItem(tokenKey);
+            const response = await fetch(`/api/orders/${encodeURIComponent(orderId)}/invoice`, {
+              headers: token ? { Authorization: `Bearer ${token}` } : {}
+            });
+            if (!response.ok) throw new Error('Rechnung konnte nicht geladen werden.');
+            const url = URL.createObjectURL(await response.blob());
+            invoiceWindow.location.href = url;
+            setTimeout(() => URL.revokeObjectURL(url), 60000);
+          } catch (error) {
+            invoiceWindow.close();
+            alert(error.message);
+          }
+        });
+      });
       document.querySelectorAll('#ordersTable button[data-save]').forEach(button => {
         button.addEventListener('click', async () => {
           const orderId = button.dataset.save;
@@ -303,7 +335,7 @@
     }
 
     async function loadSettings() {
-      const data = await fetchAuth('/api/settings');
+      const data = await fetchAuth('/api/all');
       if (!data) return;
       document.getElementById('accountingCompany').value = data.invoiceDetails?.companyName || 'Richemont Monaco';
       document.getElementById('accountingBank').value = data.invoiceDetails?.bankName || 'Nord Ostsee Sparkasse';
@@ -342,14 +374,14 @@
       table.className = 'table';
       table.innerHTML = `<thead><tr><th>Datum</th><th>Lieferant</th><th>Beschreibung</th><th>Betrag</th><th>Steuer</th><th>Kategorie</th><th>Erfasst von</th><th>Aktion</th></tr></thead><tbody>${expenses.map(expense => `
         <tr>
-          <td>${expense.date}</td>
-          <td>${expense.supplier}</td>
-          <td>${expense.description || '-'}</td>
-          <td>€ ${expense.amount.toFixed(2)}</td>
-          <td>€ ${expense.taxAmount.toFixed(2)} (${expense.taxRate || 0}%)</td>
-          <td>${expense.category}</td>
-          <td>${expense.createdBy || '–'}</td>
-          <td><button class="btn" data-id="${expense.id}">Löschen</button></td>
+          <td>${escapeHtml(expense.date)}</td>
+          <td>${escapeHtml(expense.supplier)}</td>
+          <td>${escapeHtml(expense.description || '-')}</td>
+          <td>€ ${Number(expense.amount || 0).toFixed(2)}</td>
+          <td>€ ${Number(expense.taxAmount || 0).toFixed(2)} (${Number(expense.taxRate || 0)}%)</td>
+          <td>${escapeHtml(expense.category)}</td>
+          <td>${escapeHtml(expense.createdBy || '–')}</td>
+          <td><button class="btn" data-id="${escapeHtml(expense.id)}">Löschen</button></td>
         </tr>
       `).join('')}</tbody>`;
       document.getElementById('expensesTable').innerHTML = '';
@@ -422,14 +454,14 @@
       table.className = 'table';
       table.innerHTML = `<thead><tr><th>Typ</th><th>Datum</th><th>Partner</th><th>Beschreibung</th><th>Betrag</th><th>Steuer</th><th>Kategorie</th><th>Erfasst von</th></tr></thead><tbody>${entries.map(entry => `
         <tr>
-          <td>${entry.type}</td>
-          <td>${entry.date}</td>
-          <td>${entry.partner}</td>
-          <td>${entry.description}</td>
+          <td>${escapeHtml(entry.type)}</td>
+          <td>${escapeHtml(entry.date)}</td>
+          <td>${escapeHtml(entry.partner)}</td>
+          <td>${escapeHtml(entry.description)}</td>
           <td>€ ${Number(entry.amount).toFixed(2)}</td>
           <td>€ ${Number(entry.tax).toFixed(2)}</td>
-          <td>${entry.category}</td>
-          <td>${entry.createdBy || '–'}</td>
+          <td>${escapeHtml(entry.category)}</td>
+          <td>${escapeHtml(entry.createdBy || '–')}</td>
         </tr>
       `).join('')}</tbody>`;
       document.getElementById('cashbookTable').innerHTML = '';
@@ -444,10 +476,10 @@
       table.className = 'table';
       table.innerHTML = `<thead><tr><th>Benutzer</th><th>Rolle</th><th>Aktiv</th><th>Aktion</th></tr></thead><tbody>${users.map(user => `
         <tr>
-          <td>${user.username}</td>
-          <td>${user.role}</td>
+          <td>${escapeHtml(user.username)}</td>
+          <td>${escapeHtml(user.role)}</td>
           <td>${user.active ? 'Ja' : 'Nein'}</td>
-          <td><button class="btn" data-user="${user.username}">Löschen</button></td>
+          <td><button class="btn" data-user="${escapeHtml(user.username)}">Löschen</button></td>
         </tr>
       `).join('')}</tbody>`;
       document.getElementById('usersTable').innerHTML = '';

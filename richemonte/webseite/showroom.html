@@ -494,6 +494,16 @@ function addToCart(product) {
 let allProducts = typeof RICHEMONTE_PRODUCTS !== 'undefined' ? RICHEMONTE_PRODUCTS : [];
 let currentCategory = 'Alle';
 
+function escapeProductHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    })[character]);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadShowroom();
     updateCartCount();
@@ -553,7 +563,7 @@ function renderCategoryFilters(products) {
 
     container.innerHTML = categories.map((category) => {
         const activeClass = category === currentCategory ? ' active' : '';
-        return `<button type="button" class="filter-btn${activeClass}" data-category="${category}">${category}</button>`;
+        return `<button type="button" class="filter-btn${activeClass}" data-category="${escapeProductHtml(category)}">${escapeProductHtml(category)}</button>`;
     }).join('');
 
     container.querySelectorAll('.filter-btn').forEach((btn) => {
@@ -615,7 +625,7 @@ function renderProducts(container, products) {
             : `${Number(product.price).toFixed(2)} €`;
             
         const sizesHtml = Array.isArray(product.sizes) && product.sizes.length
-            ? product.sizes.map((size) => `<div class="size-tag">${size}</div>`).join('')
+            ? product.sizes.map((size) => `<div class="size-tag">${escapeProductHtml(size)}</div>`).join('')
             : '<div class="size-tag">Einheitsgröße</div>';
             
         const saleBadge = isDiscounted 
@@ -627,13 +637,13 @@ function renderProducts(container, products) {
         article.innerHTML = `
             <div class="item-image" style="position: relative;">
                 ${saleBadge}
-                <img loading="lazy" src="${product.image || 'Hemd-1.jpg'}" alt="${product.title || 'Hemd'}">
+                <img loading="lazy" src="${escapeProductHtml(product.image || 'Hemd-1.jpg')}" alt="${escapeProductHtml(product.title || 'Hemd')}">
             </div>
             <div class="item-details">
-                <span class="category">${product.number || String(idx + 1).padStart(2, '0')}</span>
-                <h2>${product.title || 'Richemont Produkt'}</h2>
+                <span class="category">${escapeProductHtml(product.number || String(idx + 1).padStart(2, '0'))}</span>
+                <h2>${escapeProductHtml(product.title || 'Richemont Produkt')}</h2>
                 <p class="item-description">
-                    ${product.description || 'Ein exklusives Designerstück aus der Richemont Monaco Kollektion.'}
+                    ${escapeProductHtml(product.description || 'Ein exklusives Designerstück aus der Richemont Monaco Kollektion.')}
                 </p>
 
                 <button type="button" class="info-btn" data-drawer-id="info-${idx}">Weitere Details</button>
@@ -641,7 +651,7 @@ function renderProducts(container, products) {
                 <div class="info-drawer" id="info-${idx}">
                     <div class="info-row">
                         <span class="label">Material</span>
-                        <span class="value">${product.material || 'Nicht angegeben'}</span>
+                        <span class="value">${escapeProductHtml(product.material || 'Nicht angegeben')}</span>
                     </div>
                     <div class="info-row">
                         <span class="label">Größen</span>

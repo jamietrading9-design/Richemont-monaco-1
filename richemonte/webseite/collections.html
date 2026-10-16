@@ -394,6 +394,16 @@ function toggleMenu() {
 let allProducts = typeof RICHEMONTE_PRODUCTS !== 'undefined' ? RICHEMONTE_PRODUCTS : [];
 let currentCategory = 'Alle';
 
+function escapeProductHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    })[character]);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadCollections();
 });
@@ -487,9 +497,9 @@ function renderCollections(container, products) {
         itemDiv.className = 'collection-item';
         itemDiv.innerHTML = `
             ${saleBadge}
-            <img loading="lazy" decoding="async" src="${product.image || 'Hemd-1.jpg'}" alt="${product.title}">
+            <img loading="lazy" decoding="async" src="${escapeProductHtml(product.image || 'Hemd-1.jpg')}" alt="${escapeProductHtml(product.title)}">
             <div class="collection-info">
-                <h2>${product.title}</h2>
+                <h2>${escapeProductHtml(product.title)}</h2>
                 <div style="font-size: 11px; letter-spacing: 1px; margin-top: 5px;">${formattedPrice}</div>
             </div>
         `;

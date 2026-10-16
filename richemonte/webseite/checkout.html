@@ -368,6 +368,16 @@
     const FORMSPREE_FORM_ID = 'xeeneeab';
     const FORMSPREE_ENDPOINT = `https://formspree.io/f/${FORMSPREE_FORM_ID}`;
 
+    function escapeProductHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[character]);
+    }
+
     function normalizeSlug(value) {
       return String(value || '')
         .trim()
@@ -391,14 +401,14 @@
     function createMetadata(product) {
       return `
         <div class="image-preview">
-          ${product.image ? `<img src="${product.image}" alt="${product.title}" />` : '<span style="color:#666;">Kein Bild verfügbar</span>'}
+          ${product.image ? `<img src="${escapeProductHtml(product.image)}" alt="${escapeProductHtml(product.title)}" />` : '<span style="color:#666;">Kein Bild verfügbar</span>'}
         </div>
-        <h2>${product.title || 'Produkt'}</h2>
-        <p>${product.description || 'Elegante Bestellung aus dem Richemont Katalog.'}</p>
+        <h2>${escapeProductHtml(product.title || 'Produkt')}</h2>
+        <p>${escapeProductHtml(product.description || 'Elegante Bestellung aus dem Richemont Katalog.')}</p>
         <div class="product-details">
-          <div class="product-meta"><span>Material<span>${product.material || 'Nicht angegeben'}</span></span></div>
-          <div class="product-meta"><span>Größen<span>${(Array.isArray(product.sizes) && product.sizes.length) ? product.sizes.join(', ') : 'Einheitsgröße'}</span></span></div>
-          <div class="product-meta"><span>Kategorie<span>${product.category || product.collection || 'Signature collection'}</span></span></div>
+          <div class="product-meta"><span>Material<span>${escapeProductHtml(product.material || 'Nicht angegeben')}</span></span></div>
+          <div class="product-meta"><span>Größen<span>${escapeProductHtml((Array.isArray(product.sizes) && product.sizes.length) ? product.sizes.join(', ') : 'Einheitsgröße')}</span></span></div>
+          <div class="product-meta"><span>Kategorie<span>${escapeProductHtml(product.category || product.collection || 'Signature collection')}</span></span></div>
         </div>
         <div class="product-price">
           ${product.discountPrice && Number(product.discountPrice) < Number(product.price)
@@ -433,7 +443,7 @@
       }
       const list = items.map(item => `
         <div class="product-meta">
-          <span>${item.title || 'Artikel'}</span>
+          <span>${escapeProductHtml(item.title || 'Artikel')}</span>
           <span>${item.quantity || 1} × ${formatPrice(item.price)}</span>
         </div>
       `).join('');
@@ -471,7 +481,7 @@
       }
 
       const itemSummaryHtml = items.map(item => `
-            <li><strong>${item.title}</strong> × ${item.quantity} — ${formatPrice(item.price)}</li>
+            <li><strong>${escapeProductHtml(item.title)}</strong> × ${item.quantity} — ${formatPrice(item.price)}</li>
           `).join('');
       const total = items.reduce((sum, item) => sum + ((Number(item.price) || 0) * (Number(item.quantity) || 1)), 0);
       const orderDetails = items.map(item => `${item.title} × ${item.quantity} — ${formatPrice(item.price)}`).join('\n');
@@ -483,11 +493,11 @@
           <input type="hidden" name="_format" value="plain">
           <input type="hidden" name="_replyto" value="${cartMode ? '' : '${email}'}">
           <input type="hidden" name="_next" value="${successUrl}">
-          <input type="hidden" name="order_title" value="${cartMode ? 'Warenkorb-Bestellung' : product.title || ''}">
-          <textarea name="order_details" style="display:none;">${orderDetails}\nGesamt: ${formatPrice(total)}</textarea>
+          <input type="hidden" name="order_title" value="${escapeProductHtml(cartMode ? 'Warenkorb-Bestellung' : product.title || '')}">
+          <textarea name="order_details" style="display:none;">${escapeProductHtml(orderDetails)}\nGesamt: ${formatPrice(total)}</textarea>
           <div class="field">
             <label for="productTitle">${cartMode ? 'Warenkorb' : 'Produkt'}</label>
-            <input type="text" id="productTitle" value="${cartMode ? 'Warenkorb-Bestellung' : product.title || ''}" readonly>
+            <input type="text" id="productTitle" value="${escapeProductHtml(cartMode ? 'Warenkorb-Bestellung' : product.title || '')}" readonly>
           </div>
           <div class="field">
             <label>Bestellte Artikel</label>
