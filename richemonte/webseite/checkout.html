@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Checkout - Richemont Monaco</title>
+  <script src="supabase-client.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Great+Vibes&display=swap" rel="stylesheet">
@@ -189,6 +190,15 @@
       resize: vertical;
     }
 
+    .checkout-error {
+      margin: 0;
+      padding: 12px 14px;
+      border: 1px solid rgba(255, 138, 138, 0.4);
+      border-radius: 12px;
+      color: #ffaaaa;
+      line-height: 1.5;
+    }
+
     .actions {
       display: flex;
       flex-wrap: wrap;
@@ -333,7 +343,7 @@
   <div class="page-shell">
     <header class="site-header">
       <h1>Richemont Monaco</h1>
-      <span>Checkout</span>
+      <span>Bestellung</span>
     </header>
 
     <main class="checkout-layout">
@@ -343,8 +353,8 @@
 
       <section class="panel checkout-card">
         <div id="checkoutIntro">
-          <h2>Bestellung abschließen</h2>
-          <p>Überprüfen Sie Ihren Artikel, wählen Sie die Menge und geben Sie Ihre Lieferdaten ein.</p>
+          <h2>Bestellanfrage senden</h2>
+          <p>Prüfen Sie Ihre Auswahl und geben Sie Ihre Kontaktdaten und Lieferadresse ein. Wir melden uns zur Bestätigung und stimmen die Bezahlung anschließend mit Ihnen ab.</p>
         </div>
 
         <div id="formWrapper">
@@ -357,7 +367,7 @@
   <div id="checkoutOverlay" class="checkout-overlay">
     <div class="loader-card">
       <div id="loaderRing" class="loader-ring"></div>
-      <div id="loaderTitle" style="color:#fff; font-size:1.1rem; margin-top:14px; letter-spacing:0.03em;">Zahlung wird verarbeitet...</div>
+      <div id="loaderTitle" style="color:#fff; font-size:1.1rem; margin-top:14px; letter-spacing:0.03em;">Bestellanfrage wird übermittelt...</div>
     </div>
   </div>
 
@@ -365,8 +375,6 @@
     const searchParams = new URLSearchParams(window.location.search);
     const cartMode = searchParams.get('cart') === 'true';
     const requestedSlug = searchParams.get('slug') || '';
-    const FORMSPREE_FORM_ID = 'xeeneeab';
-    const FORMSPREE_ENDPOINT = `https://formspree.io/f/${FORMSPREE_FORM_ID}`;
 
     function escapeProductHtml(value) {
       return String(value ?? '').replace(/[&<>"']/g, character => ({
@@ -452,7 +460,7 @@
           <span style="color:#fff; font-size: 1rem; text-align:center;">Warenkorb</span>
         </div>
         <h2>Warenkorb</h2>
-        <p>Prüfen Sie Ihre Bestellung, geben Sie Ihre Daten und IBAN ein.</p>
+        <p>Prüfen Sie Ihre Auswahl und geben Sie Ihre Kontaktdaten und Lieferadresse ein.</p>
         <div class="product-details">
           ${list}
         </div>
@@ -466,12 +474,14 @@
         productId: item.productId || item.id || item.slug,
         title: item.title || 'Artikel',
         quantity: Number(item.quantity) || 1,
-        price: Number(item.price) || 0
+        price: Number(item.price) || 0,
+        selectedSize: item.selectedSize || ''
       })) : [{
         productId: product.id || product.number || product.slug,
         title: product.title,
         quantity: 1,
-        price: product.discountPrice || product.price || 0
+        price: product.discountPrice || product.price || 0,
+        selectedSize: ''
       }];
 
       if (cartMode) {
@@ -479,25 +489,22 @@
       } else {
         productSummary.innerHTML = createMetadata(product);
       }
+      document.querySelector('#checkoutIntro h2').textContent = cartMode
+        ? 'Warenkorb anfragen'
+        : 'Bestellanfrage senden';
+      document.querySelector('#checkoutIntro p').textContent =
+        'Prüfen Sie Ihre Auswahl und geben Sie Ihre Kontaktdaten und Lieferadresse ein. Wir melden uns zur Bestätigung und stimmen die Bezahlung anschließend mit Ihnen ab.';
 
       const itemSummaryHtml = items.map(item => `
-            <li><strong>${escapeProductHtml(item.title)}</strong> × ${item.quantity} — ${formatPrice(item.price)}</li>
+            <li><strong>${escapeProductHtml(item.title)}</strong>${item.selectedSize ? ` · Größe ${escapeProductHtml(item.selectedSize)}` : ''} × ${item.quantity} — ${formatPrice(item.price)}</li>
           `).join('');
       const total = items.reduce((sum, item) => sum + ((Number(item.price) || 0) * (Number(item.quantity) || 1)), 0);
-      const orderDetails = items.map(item => `${item.title} × ${item.quantity} — ${formatPrice(item.price)}`).join('\n');
-      const successUrl = `${window.location.pathname}?submitted=true`;
 
       checkoutFormWrapper.innerHTML = `
-        <form id="checkoutForm" action="${FORMSPREE_ENDPOINT}" method="POST">
-          <input type="hidden" name="_subject" value="Neue Bestellung Richemont Monaco">
-          <input type="hidden" name="_format" value="plain">
-          <input type="hidden" name="_replyto" value="${cartMode ? '' : '${email}'}">
-          <input type="hidden" name="_next" value="${successUrl}">
-          <input type="hidden" name="order_title" value="${escapeProductHtml(cartMode ? 'Warenkorb-Bestellung' : product.title || '')}">
-          <textarea name="order_details" style="display:none;">${escapeProductHtml(orderDetails)}\nGesamt: ${formatPrice(total)}</textarea>
+        <form id="checkoutForm">
           <div class="field">
             <label for="productTitle">${cartMode ? 'Warenkorb' : 'Produkt'}</label>
-            <input type="text" id="productTitle" value="${escapeProductHtml(cartMode ? 'Warenkorb-Bestellung' : product.title || '')}" readonly>
+            <input type="text" id="productTitle" value="${escapeProductHtml(cartMode ? 'Warenkorb-Bestellanfrage' : product.title || '')}" readonly>
           </div>
           <div class="field">
             <label>Bestellte Artikel</label>
@@ -518,10 +525,6 @@
             <input type="text" id="address" name="address" placeholder="Straße, Hausnummer, PLZ, Stadt" required>
           </div>
           <div class="field">
-            <label for="iban">IBAN</label>
-            <input type="text" id="iban" name="iban" placeholder="DE44 5001 0517 5407 3249 31" required>
-          </div>
-          <div class="field">
             <label for="notes">Anmerkungen</label>
             <textarea id="notes" name="notes" placeholder="Wunschtext, Lieferhinweise oder Geschenkoptionen"></textarea>
           </div>
@@ -529,16 +532,81 @@
             <label>Gesamtbetrag</label>
             <input type="text" value="${formatPrice(total)}" readonly>
           </div>
-          <button class="button" type="submit">Bestellung absenden</button>
+          <button class="button" type="submit">Bestellanfrage senden</button>
+          <p id="checkoutError" class="checkout-error" role="alert" hidden></p>
         </form>
         <div class="actions">
           <a id="backToProduct" class="button-outline" href="${cartMode ? 'cart.html' : product.detailPage || `product.html?slug=${encodeURIComponent(product.slug || '')}`}">Zurück</a>
           <a class="button-outline" href="/">Zur Startseite</a>
         </div>
       `;
+      document.getElementById('checkoutForm').addEventListener('submit', event => submitCheckoutRequest(event, items));
+    }
+
+    async function submitCheckoutRequest(event, items) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const submitButton = form.querySelector('button[type="submit"]');
+      const errorMessage = document.getElementById('checkoutError');
+      errorMessage.hidden = true;
+      submitButton.disabled = true;
+      submitButton.textContent = 'Wird gesendet…';
+
+      try {
+        const data = await window.RICHEMONTE_SUPABASE.createOrder({
+          items: items.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            selectedSize: item.selectedSize,
+            price: item.price
+          })),
+          customer: {
+            name: form.querySelector('[name="name"]').value.trim(),
+            email: form.querySelector('[name="email"]').value.trim(),
+            address: form.querySelector('[name="address"]').value.trim()
+          },
+          notes: form.querySelector('[name="notes"]').value.trim()
+        });
+        if (!data.success || !data.orderId) {
+          throw new Error('Die Anfrage konnte nicht gespeichert werden.');
+        }
+
+        if (cartMode) {
+          localStorage.removeItem('richemont_cart');
+        }
+        const confirmationUrl = new URL(window.location.pathname, window.location.origin);
+        confirmationUrl.searchParams.set('submitted', 'true');
+        confirmationUrl.searchParams.set('orderId', data.orderId);
+        window.location.assign(confirmationUrl);
+      } catch (error) {
+        errorMessage.textContent = error.message || 'Die Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es erneut.';
+        errorMessage.hidden = false;
+        submitButton.disabled = false;
+        submitButton.textContent = 'Bestellanfrage senden';
+      }
     }
 
     async function loadProduct() {
+      if (searchParams.get('submitted') === 'true') {
+        const orderId = searchParams.get('orderId');
+        document.getElementById('productSummary').innerHTML = '<div class="empty-state" role="status">Ihre Anfrage wurde übermittelt.</div>';
+        document.getElementById('checkoutIntro').innerHTML = `
+          <h2>Vielen Dank für Ihre Anfrage</h2>
+          <p>Wir melden uns zur Bestätigung Ihrer Auswahl und stimmen die Bezahlung anschließend mit Ihnen ab.</p>
+        `;
+        document.getElementById('formWrapper').innerHTML = `
+          <div class="confirmation">
+            <h3>Anfrage erfolgreich gesendet</h3>
+            ${orderId ? `<p>Ihre Bestellnummer: <strong>${escapeProductHtml(orderId)}</strong></p>` : ''}
+            <p>Sie erhalten weitere Informationen per E-Mail.</p>
+          </div>
+          <div class="actions">
+            <a class="button" href="/">Zur Startseite</a>
+          </div>
+        `;
+        return;
+      }
+
       if (cartMode) {
         const cartItems = getCartItems();
         if (!cartItems.length) {
@@ -555,9 +623,7 @@
       }
 
       try {
-        const response = await fetch('/api/products');
-        const data = await response.json();
-        const products = Array.isArray(data.products) ? data.products : [];
+        const products = await window.RICHEMONTE_SUPABASE.fetchProducts();
         const normalizedRequested = normalizeSlug(requestedSlug);
         const product = products.find((item) => {
           const candidates = [item.slug, item.detailPage, item.number, `produkt${String(item.number || '').padStart(2, '0')}`];

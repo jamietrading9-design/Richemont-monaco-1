@@ -424,7 +424,7 @@
             <div class="input-group">
                 <textarea id="message" name="message" placeholder="Nachricht" required></textarea>
             </div>
-            <div class="input-group" id="formMessage" style="display:none; color:#d7b98a; font-size:0.9rem; text-align:center; margin-bottom:20px;"></div>
+            <div class="input-group" id="formMessage" style="display:none; color:#fff; font-size:0.9rem; text-align:center; margin-bottom:20px;"></div>
             <button type="submit">Abschicken </button>
         </form>
     </main>
@@ -493,18 +493,18 @@
                     if (response.ok) {
                         formMessage.textContent = 'Vielen Dank! Ihre Nachricht wurde gesendet.';
                         formMessage.style.display = 'block';
-                        formMessage.style.color = '#d7b98a';
+                        formMessage.style.color = '#fff';
                         contactForm.reset();
                     } else {
                         formMessage.textContent = 'Beim Senden ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.';
                         formMessage.style.display = 'block';
-                        formMessage.style.color = '#d7b98a';
+                        formMessage.style.color = '#fff';
                     }
                 } catch (error) {
                     console.error('Kontaktformular-Fehler', error);
                     formMessage.textContent = 'Beim Senden ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.';
                     formMessage.style.display = 'block';
-                    formMessage.style.color = '#d7b98a';
+                    formMessage.style.color = '#fff';
                 }
             });
 

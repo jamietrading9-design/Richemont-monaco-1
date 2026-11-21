@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Produkt – Richemont</title>
+<script src="supabase-client.js"></script>
 <link rel="stylesheet" href="css/responsive.css">
 <script src="products-data.js"></script>
 <style>
@@ -108,7 +109,7 @@ nav {
     position: absolute;
     top: -8px;
     right: -8px;
-    background: #d7b98a;
+    background: #fff;
     color: #000;
     width: 20px;
     height: 20px;
@@ -233,7 +234,7 @@ main {
 }
 
 .product-price.discounted .sale-price {
-    color: #d7b98a;
+    color: #fff;
     font-weight: 600;
 }
 
@@ -595,6 +596,28 @@ footer {
 </footer>
 
 <script>
+function showCartToast(message) {
+    let toast = document.getElementById('cartToast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'cartToast';
+        toast.setAttribute('role', 'status');
+        toast.setAttribute('aria-live', 'polite');
+        toast.style.cssText = 'position:fixed;left:50%;bottom:32px;z-index:5000;transform:translate(-50%,20px);padding:14px 22px;background:#111;color:#fff;border:1px solid rgba(255,255,255,.35);font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:0;transition:.25s ease;pointer-events:none;max-width:calc(100vw - 32px);text-align:center;';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translate(-50%,0)';
+    });
+    clearTimeout(toast.hideTimer);
+    toast.hideTimer = setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translate(-50%,20px)';
+    }, 2600);
+}
+
 function toggleMenu() {
     document.getElementById('sideMenu').classList.toggle('active');
 }
@@ -657,11 +680,10 @@ async function loadProduct() {
 
     // Try to fetch live data
     try {
-        const res = await fetch('/api/products', { cache: 'no-store' });
-        if (res.ok) {
-            const data = await res.json();
-            allProducts = data.products || RICHEMONTE_PRODUCTS;
-            localStorage.setItem('richemont_products.json', JSON.stringify(data));
+        const liveProducts = await window.RICHEMONTE_SUPABASE.fetchProducts();
+        if (liveProducts) {
+            allProducts = liveProducts;
+            localStorage.setItem('richemont_products.json', JSON.stringify({ products: liveProducts }));
         }
     } catch(err) {
         console.error("Failed fetching live products:", err);
@@ -751,6 +773,7 @@ function renderProduct() {
                 </div>
 
                 <button class="add-to-cart" onclick="addToCart()">In den Warenkorb</button>
+                <button class="add-to-cart" onclick="buyNow()">Jetzt kaufen</button>
             </div>
         </div>
     `;
@@ -781,6 +804,12 @@ function addToCart() {
     cart.push(cartItem);
     localStorage.setItem('richemont_cart', JSON.stringify(cart));
     updateCartCount();
+    showCartToast('Zum Einkaufswagen hinzugefügt');
+}
+
+function buyNow() {
+    if (!currentProduct) return;
+    window.location.href = `checkout.html?slug=${encodeURIComponent(currentProduct.slug || currentProduct.id || '')}`;
 }
 
 function renderRelatedProducts() {

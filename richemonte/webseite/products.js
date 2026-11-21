@@ -96,7 +96,7 @@
         const sale = document.createElement('span');
         sale.className = 'product-card__price-sale';
         sale.textContent = formatPrice(discountPrice);
-        sale.style.color = '#d7b98a';
+        sale.style.color = '#fff';
         priceEl.appendChild(sale);
       } else {
         priceEl.textContent = price;

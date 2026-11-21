@@ -621,9 +621,6 @@ footer {
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
-.bbb1{
-    background-color: #dadfd8;
-padding-top: 5%;}
 </style>
 </head>
 <body>
@@ -705,12 +702,6 @@ padding-top: 5%;}
     </div>
     <div class="footer-bottom">&copy; 2026 Richemont Monaco</div>
 </footer>
-<div class="indes">
-</div>
-<div class="bbb1">
-    <button>Ausloggen</button>
-</div>
-
 <div id="checkoutOverlay" class="checkout-overlay">
     <div class="loader-card">
         <div id="loaderRing" class="loader-ring"></div>
@@ -845,7 +836,8 @@ async function submitCheckout() {
         productId: item.productId || item.id || item.slug,
         title: item.title || 'Artikel',
         quantity: Number(item.quantity) || 1,
-        price: Number(item.discountPrice || item.price) || 0
+        price: Number(item.discountPrice || item.price) || 0,
+        selectedSize: item.selectedSize || ''
     }));
     const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -869,19 +861,14 @@ async function submitCheckout() {
     loaderText.textContent = 'Wir verarbeiten Ihre Bestellung...';
 
     try {
-        const response = await fetch('/api/pay', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        const data = await response.json();
+        const data = await window.RICHEMONTE_SUPABASE.createOrder(payload);
+        if (!data.success) throw new Error('Bestellung konnte nicht gespeichert werden.');
 
         await new Promise(resolve => setTimeout(resolve, 2000));
 
-        if (!data.success) {
+        if (!response.ok || !data.success) {
             overlay.classList.remove('active');
-            console.error('Checkout error:', data.error || 'Bestellung konnte nicht abgeschlossen werden.');
-            // leave cart displayed; no browser alert
+            showInlineCheckoutError(data.error || 'Bestellung konnte nicht abgeschlossen werden.');
             return;
         }
 
@@ -960,4 +947,6 @@ function goBackOrCollections(e) {
 </script>
 
 </body>
+
+
 </html>

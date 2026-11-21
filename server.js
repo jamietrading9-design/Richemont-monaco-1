@@ -12,6 +12,8 @@ const crypto = require('crypto');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET;
+const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_KEY || '';
 if (!JWT_SECRET || Buffer.byteLength(JWT_SECRET) < 32) {
   throw new Error('JWT_SECRET must be set to a random value of at least 32 bytes.');
 }
@@ -103,6 +105,10 @@ app.use((req, res, next) => {
 app.disable('x-powered-by');
 
 app.use((req, res, next) => {
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.set('X-Frame-Options', 'SAMEORIGIN');
+  res.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   const assetExtensions = ['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.webp', '.json', '.map'];
   const ext = path.extname(req.path).toLowerCase();
   if (req.method === 'GET' && assetExtensions.includes(ext)) {
@@ -211,8 +217,217 @@ const readJsonFile = (filePath, defaultValue = []) => {
 };
 
 const writeJsonFile = (filePath, data) => {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+  const tempFile = `${filePath}.${process.pid}.${crypto.randomUUID()}.tmp`;
+  fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), { mode: 0o600 });
+  fs.renameSync(tempFile, filePath);
+  void queueSupabaseSync(filePath, data);
 };
+
+const supabaseHeaders = SUPABASE_SECRET_KEY ? {
+  apikey: SUPABASE_SECRET_KEY,
+  Authorization: `Bearer ${SUPABASE_SECRET_KEY}`,
+  'Content-Type': 'application/json'
+} : null;
+
+let supabaseSyncQueue = Promise.resolve();
+
+function queueSupabaseSync(filePath, data) {
+  if (!SUPABASE_URL || !supabaseHeaders) return Promise.resolve();
+
+  let table = null;
+  let rows = null;
+
+  if (filePath === productsFile) {
+    table = 'products';
+    rows = data.map((product) => ({
+      slug: product.slug || product.id || String(product.number || crypto.randomUUID()),
+      number: product.number ? String(product.number) : null,
+      title: product.title || product.name || 'Produkt',
+      name: product.name || null,
+      description: product.description || null,
+      price: Number(product.price) || 0,
+      discount_price: product.discountPrice == null ? null : Number(product.discountPrice),
+      currency: product.currency || 'EUR',
+      image: product.image || null,
+      alt: product.alt || product.title || product.name || null,
+      material: product.material || null,
+      sizes: Array.isArray(product.sizes) ? product.sizes : [],
+      category: product.category || null,
+      detail_page: product.detailPage || null,
+      featured: product.featured === true
+    }));
+  } else if (filePath === ordersFile) {
+    table = 'orders';
+    rows = data.map((order) => ({
+      id: order.id,
+      items: order.items || [],
+      total: Number(order.total) || 0,
+      customer: order.customer || {},
+      notes: order.notes || null,
+      payment_method: order.paymentMethod || 'banktransfer',
+      iban: order.iban || null,
+      status: order.status || 'offen',
+      tracking_number: order.trackingNumber || null,
+      created_at: order.createdAt || new Date().toISOString(),
+      updated_at: order.updatedAt || null
+    }));
+  } else if (filePath === settingsFile) {
+    table = 'site_settings';
+    rows = [{
+      id: 'main',
+      site_title: data.siteTitle || 'Richemont Monaco',
+      site_subtitle: data.siteSubtitle || 'Designer Clothing',
+      maintenance: data.maintenance || {},
+      site_content: data.siteContent || {},
+      invoice_details: data.invoiceDetails || {}
+    }];
+  } else if (filePath === categoriesFile) {
+    table = 'categories';
+    rows = data.map((category) => ({ name: category.name, description: category.description || null }));
+  } else if (filePath === expensesFile) {
+    table = 'expenses';
+    rows = data.map((expense) => ({
+      id: expense.id,
+      supplier: expense.supplier || null,
+      description: expense.description || null,
+      amount: Number(expense.amount) || 0,
+      tax_rate: Number(expense.taxRate) || 0,
+      date: expense.date || null,
+      category: expense.category || null,
+      created_at: expense.createdAt || new Date().toISOString()
+    }));
+  } else if (filePath === discountsFile) {
+    table = 'discounts';
+    rows = data.map((discount) => ({
+      id: discount.id,
+      name: discount.name || null,
+      type: discount.type || null,
+      value: Number(discount.value) || 0,
+      active: discount.active !== false
+    }));
+  }
+
+  if (!table || !rows) return Promise.resolve();
+
+  supabaseSyncQueue = supabaseSyncQueue.then(async () => {
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+        method: 'DELETE',
+        headers: { ...supabaseHeaders, Prefer: 'return=minimal' },
+      });
+      if (rows.length) {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+          method: 'POST',
+          headers: { ...supabaseHeaders, Prefer: 'resolution=merge-duplicates,return=minimal' },
+          body: JSON.stringify(rows)
+        });
+        if (!response.ok) {
+          const body = await response.text();
+          console.error(`Supabase sync failed for ${table}: ${response.status} ${body}`);
+        }
+      }
+    } catch (error) {
+      console.error(`Supabase sync error for ${table}:`, error.message);
+    }
+  });
+  return supabaseSyncQueue;
+}
+
+async function syncSupabaseToLocal() {
+  if (!SUPABASE_URL || !supabaseHeaders) return;
+
+  const loadTable = async (table) => {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*`, {
+      headers: supabaseHeaders
+    });
+    if (!response.ok) return null;
+    return response.json();
+  };
+
+  try {
+    const [products, settingsRows, orders, categories, expenses, discounts] = await Promise.all([
+      loadTable('products'),
+      loadTable('site_settings'),
+      loadTable('orders'),
+      loadTable('categories'),
+      loadTable('expenses'),
+      loadTable('discounts')
+    ]);
+
+    if (Array.isArray(products) && products.length) {
+      writeJsonFile(productsFile, products.map((product) => ({
+        slug: product.slug,
+        number: product.number,
+        title: product.title || product.name || 'Produkt',
+        name: product.name,
+        description: product.description,
+        price: Number(product.price) || 0,
+        discountPrice: product.discount_price == null ? null : Number(product.discount_price),
+        currency: product.currency || 'EUR',
+        image: product.image,
+        alt: product.alt,
+        material: product.material,
+        sizes: product.sizes || [],
+        category: product.category,
+        detailPage: product.detail_page,
+        featured: product.featured === true
+      })));
+    }
+
+    if (Array.isArray(settingsRows) && settingsRows.length) {
+      const settings = settingsRows.find((row) => row.id === 'main') || settingsRows[0];
+      writeJsonFile(settingsFile, {
+        siteTitle: settings.site_title || 'Richemont Monaco',
+        siteSubtitle: settings.site_subtitle || 'Designer Clothing',
+        maintenance: settings.maintenance || {},
+        siteContent: settings.site_content || {},
+        invoiceDetails: settings.invoice_details || {}
+      });
+    }
+
+    if (Array.isArray(orders)) writeJsonFile(ordersFile, orders.map((order) => ({
+      id: order.id,
+      items: order.items || [],
+      total: Number(order.total) || 0,
+      customer: order.customer || {},
+      notes: order.notes || '',
+      paymentMethod: order.payment_method || 'banktransfer',
+      iban: order.iban || '',
+      status: order.status || 'offen',
+      trackingNumber: order.tracking_number || '',
+      createdAt: order.created_at,
+      updatedAt: order.updated_at
+    })));
+
+    if (Array.isArray(categories)) writeJsonFile(categoriesFile, categories.map((category) => ({
+      name: category.name,
+      description: category.description || ''
+    })));
+
+    if (Array.isArray(expenses)) writeJsonFile(expensesFile, expenses.map((expense) => ({
+      id: expense.id,
+      supplier: expense.supplier,
+      description: expense.description,
+      amount: Number(expense.amount) || 0,
+      taxRate: Number(expense.tax_rate) || 0,
+      date: expense.date,
+      category: expense.category,
+      createdAt: expense.created_at
+    })));
+
+    if (Array.isArray(discounts)) writeJsonFile(discountsFile, discounts.map((discount) => ({
+      id: discount.id,
+      name: discount.name,
+      type: discount.type,
+      value: Number(discount.value) || 0,
+      active: discount.active !== false
+    })));
+
+    console.log('Supabase data synchronized');
+  } catch (error) {
+    console.warn('Supabase synchronization unavailable:', error.message);
+  }
+}
 
 // Initialize data files if they don't exist
 const initializeDataFiles = () => {
@@ -624,6 +839,16 @@ app.post('/api/products', authenticateToken, requireAdmin, (req, res) => {
     if (!Array.isArray(products)) {
       return res.status(400).json({ error: 'Products must be an array' });
     }
+    const invalidProduct = products.find((product) =>
+      !product ||
+      typeof product !== 'object' ||
+      !String(product.title || product.name || '').trim() ||
+      !Number.isFinite(Number(product.price)) ||
+      Number(product.price) < 0
+    );
+    if (invalidProduct) {
+      return res.status(400).json({ error: 'Jedes Produkt benötigt einen Namen und einen gültigen Preis.' });
+    }
     fs.writeFileSync(productsFile, JSON.stringify(products, null, 2));
     res.json({ success: true, message: 'Products updated successfully' });
   } catch (error) {
@@ -673,6 +898,126 @@ app.get('/api/orders', authenticateToken, requireAdmin, (req, res) => {
   } catch (error) {
     console.error('Error reading orders:', error);
     res.status(500).json({ success: false, error: 'Failed to read orders' });
+  }
+});
+
+app.post('/api/pay', (req, res) => {
+  try {
+    const { items, customer, notes, iban } = req.body || {};
+    if (!Array.isArray(items) || items.length === 0 || items.length > 50) {
+      return res.status(400).json({ success: false, error: 'Der Warenkorb ist leer oder ungültig.' });
+    }
+
+    const name = String(customer?.name || '').trim();
+    const email = String(customer?.email || '').trim();
+    const address = String(customer?.address || '').trim();
+    if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !address) {
+      return res.status(400).json({ success: false, error: 'Bitte geben Sie gültige Kunden- und Kontaktdaten ein.' });
+    }
+
+    const products = readJsonFile(productsFile, []);
+    if (!Array.isArray(products)) {
+      throw new Error('Product data must be an array');
+    }
+
+    const orderItems = [];
+    for (const item of items) {
+      const productId = String(item?.productId || '').trim();
+      const quantity = Number(item?.quantity);
+      if (!productId || !Number.isInteger(quantity) || quantity < 1 || quantity > 99) {
+        return res.status(400).json({ success: false, error: 'Ein Artikel im Warenkorb ist ungültig.' });
+      }
+
+      const product = products.find((entry) =>
+        [entry.slug, entry.id, entry.number].some((identifier) => String(identifier || '') === productId)
+      );
+      if (!product) {
+        return res.status(400).json({ success: false, error: 'Ein Artikel ist nicht mehr verfügbar. Bitte aktualisieren Sie den Warenkorb.' });
+      }
+
+      const price = Number(product.price);
+      const discountPrice = Number(product.discountPrice);
+      const unitPrice = Number.isFinite(discountPrice) && discountPrice > 0 && discountPrice < price
+        ? discountPrice
+        : price;
+      if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+        throw new Error(`Invalid price for product ${productId}`);
+      }
+
+      const selectedSize = String(item?.selectedSize || '').trim();
+      if (selectedSize && Array.isArray(product.sizes) && !product.sizes.includes(selectedSize)) {
+        return res.status(400).json({ success: false, error: 'Eine ausgewählte Größe ist nicht verfügbar.' });
+      }
+
+      orderItems.push({
+        productId,
+        title: String(product.title || product.name || 'Artikel'),
+        quantity,
+        price: unitPrice,
+        ...(selectedSize ? { selectedSize } : {})
+      });
+    }
+
+    const total = Number(orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2));
+    const orderId = `RM-${crypto.randomUUID().toUpperCase()}`;
+    const order = {
+      id: orderId,
+      items: orderItems,
+      total,
+      customer: { name, email, address },
+      notes: String(notes || '').trim().slice(0, 1000),
+      paymentMethod: 'banktransfer',
+      iban: String(iban || '').trim().slice(0, 64),
+      status: 'offen',
+      trackingNumber: '',
+      createdAt: new Date().toISOString()
+    };
+    const orders = readJsonFile(ordersFile, []);
+    if (!Array.isArray(orders)) {
+      throw new Error('Order data must be an array');
+    }
+    orders.push(order);
+    writeJsonFile(ordersFile, orders);
+
+    res.status(201).json({ success: true, orderId });
+  } catch (error) {
+    console.error('Error creating order:', error);
+    res.status(500).json({ success: false, error: 'Bestellung konnte nicht gespeichert werden.' });
+  }
+});
+
+app.get('/api/order-status', (req, res) => {
+  try {
+    const searchValue = String(req.query.orderId || '').trim().toLowerCase();
+    if (!searchValue) {
+      return res.status(400).json({ error: 'Bitte geben Sie eine Bestell- oder Sendungsnummer ein.' });
+    }
+
+    const orders = readJsonFile(ordersFile, []);
+    if (!Array.isArray(orders)) {
+      throw new Error('Order data must be an array');
+    }
+    const order = orders.find((entry) =>
+      String(entry.id || '').toLowerCase() === searchValue
+    ) || orders.find((entry) =>
+      String(entry.trackingNumber || '').trim().toLowerCase() === searchValue
+    );
+    if (!order) {
+      return res.status(404).json({ error: 'Bestellung nicht gefunden.' });
+    }
+
+    res.json({
+      order: {
+        id: order.id,
+        total: order.total,
+        status: order.status,
+        trackingNumber: order.trackingNumber || '',
+        createdAt: order.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Error reading order status:', error);
+    res.status(500).json({ error: 'Bestellstatus konnte nicht geladen werden.' });
   }
 });
 
@@ -1326,8 +1671,10 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'richemonte/webseite/index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`✓ Server running on http://localhost:${PORT}`);
-  console.log(`✓ Admin Console: http://localhost:${PORT}/admin.html`);
-  console.log(`✓ Health Check: http://localhost:${PORT}/health`);
+syncSupabaseToLocal().finally(() => {
+  app.listen(PORT, () => {
+    console.log(`✓ Server running on http://localhost:${PORT}`);
+    console.log(`✓ Admin Console: http://localhost:${PORT}/admin.html`);
+    console.log(`✓ Health Check: http://localhost:${PORT}/health`);
+  });
 });
