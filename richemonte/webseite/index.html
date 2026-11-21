@@ -454,10 +454,7 @@ window.addEventListener('focus', updateCartCount);
 async function loadSiteSettings() {
     try {
         let settings = await window.RICHEMONTE_SUPABASE.fetchSettings();
-        if (!settings) {
-            const response = await fetch('/api/settings');
-            settings = await response.json();
-        }
+        if (!settings) return;
         if (settings.siteTitle) {
             document.getElementById('siteTitleText').textContent = settings.siteTitle;
             document.title = settings.siteTitle;
