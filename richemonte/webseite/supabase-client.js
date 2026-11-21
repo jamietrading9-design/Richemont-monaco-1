@@ -27,14 +27,16 @@
       name: row.name,
       description: row.description || '',
       price: Number(row.price) || 0,
-      discountPrice: row.discount_price == null ? null : Number(row.discount_price),
+      discountPrice: row.discountPrice != null
+        ? Number(row.discountPrice)
+        : row.discount_price == null ? null : Number(row.discount_price),
       currency: row.currency || 'EUR',
       image: row.image,
       alt: row.alt || row.title || row.name,
       material: row.material,
       sizes: Array.isArray(row.sizes) ? row.sizes : [],
       category: row.category,
-      detailPage: row.detail_page,
+      detailPage: row.detailPage || row.detail_page,
       featured: row.featured === true
     };
   }
@@ -43,9 +45,17 @@
     async fetchProducts() {
       try {
         const rows = await request('products?select=*');
-        return rows.map(normalizeProduct);
+        if (Array.isArray(rows) && rows.length) return rows.map(normalizeProduct);
       } catch (error) {
         console.warn('Supabase products unavailable:', error);
+      }
+      try {
+        const fallback = await fetch('products.json', { cache: 'no-store' });
+        if (!fallback.ok) return null;
+        const data = await fallback.json();
+        return (data.products || []).map(normalizeProduct);
+      } catch (error) {
+        console.warn('Local product fallback unavailable:', error);
         return null;
       }
     },
